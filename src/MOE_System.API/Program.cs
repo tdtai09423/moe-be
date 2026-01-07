@@ -1,5 +1,7 @@
 using MOE_System.Application;
 using MOE_System.Infrastructure;
+using MOE_System.API.ServicesRegister;
+using MOE_System.API.MiddleWares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,32 +10,22 @@ builder.Services.AddControllers();
 
 // Add Application and Infrastructure layers
 builder.Services.AddApplication();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=.;Database=MOE_SystemDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
-builder.Services.AddInfrastructure(connectionString);
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Configure Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerConfiguration();
 
 var app = builder.Build();
 
+// Configure exception handling middleware
+app.UseExceptionMiddleware();
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MOE System API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+app.UseSwaggerConfiguration(app.Environment);
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
-app.MapControllers();
 
 app.MapControllers();
 
