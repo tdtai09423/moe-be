@@ -17,8 +17,6 @@ namespace MOE_System.API.Controllers.Admin
 
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<AccountHolderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<AccountHolderResponse>>> CreateAccountHolder(CreateAccountHolderRequest request)
         {
             var newAccountHolder = await _accountHolderService.AddAccountHolderAsync(request);
@@ -26,18 +24,17 @@ namespace MOE_System.API.Controllers.Admin
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<List<AccountHolderResponse>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<List<AccountHolderResponse>>>> GetAccountHolders()
+        [ProducesResponseType(typeof(ApiResponse<PaginatedList<AccountHolderResponse>>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<PaginatedList<AccountHolderResponse>>>> GetAccountHolders(
+            [FromQuery] int pageNumber = 1, 
+            [FromQuery] int pageSize = 20)
         {
-            var accountHolders = await _accountHolderService.GetAccountHoldersAsync();
-            return Success(accountHolders, "Account holders retrieved successfully");
+            var accountHolders = await _accountHolderService.GetAccountHoldersAsync(pageNumber, pageSize);
+            return Paginated(accountHolders.Items, pageNumber, pageSize, accountHolders.TotalCount, "Account holders retrieved successfully");
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponse<AccountHolderDetailResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<AccountHolderDetailResponse>>> GetAccountHolderDetail(string id)
         {
             var accountHolder = await _accountHolderService.GetAccountHolderDetailAsync(id);

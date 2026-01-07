@@ -1,5 +1,7 @@
-﻿using MOE_System.Application.Admin.DTOs.AccountHolder;
+﻿using Microsoft.EntityFrameworkCore;
+using MOE_System.Application.Admin.DTOs.AccountHolder;
 using MOE_System.Application.Admin.Interfaces;
+using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Interfaces;
 using MOE_System.Domain.Entities;
@@ -95,32 +97,34 @@ namespace MOE_System.Application.Admin.Services
             return accountHolderDetailResponse;
         }
 
-        public async Task<List<AccountHolderResponse>> GetAccountHoldersAsync()
+        public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20)
         {
             var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
-            var accountHolders = await accountHolderRepo.GetAllAsync();
-            var accountHolderResponses = new List<AccountHolderResponse>();
-
-            foreach (var accountHolder in accountHolders)
+            
+            var query = accountHolderRepo.Entities;
+            var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
+            
+            var accountHolderResponses = paginatedAccountHolders.Items.Select(accountHolder => new AccountHolderResponse
             {
-                accountHolderResponses.Add(new AccountHolderResponse
-                {
-                    Id = accountHolder.Id,
-                    FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
-                    NRIC = accountHolder.NRIC,
-                    Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
-                    Balance = accountHolder.EducationAccount?.Balance ?? 0,
-                    SchoolingStatus = accountHolder.SchoolingStatus,
-                    EducationLevel = accountHolder.EducationLevel,
-                    CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
-                    OutstandingFees = accountHolder.EducationAccount?.Enrollments?
-                      .SelectMany(e => e.Invoices)
-                      .Where(i => i.Status == "Outstanding")
-                      .Sum(i => i.Amount) ?? 0,
-                });
-            }
+                Id = accountHolder.Id,
+                FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
+                NRIC = accountHolder.NRIC,
+                Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
+                Balance = accountHolder.EducationAccount?.Balance ?? 0,
+                SchoolingStatus = accountHolder.SchoolingStatus,
+                EducationLevel = accountHolder.EducationLevel,
+                CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
+                OutstandingFees = accountHolder.EducationAccount?.Enrollments?
+                    .SelectMany(e => e.Invoices)
+                    .Where(i => i.Status == "Outstanding")
+                    .Sum(i => i.Amount) ?? 0
+            }).ToList();
 
-            return accountHolderResponses;
+            return new PaginatedList<AccountHolderResponse>(
+                accountHolderResponses, 
+                paginatedAccountHolders.TotalCount, 
+                paginatedAccountHolders.PageIndex, 
+                pageSize);
         }
 
         public async Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request)
@@ -132,6 +136,15 @@ namespace MOE_System.Application.Admin.Services
                 var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
                 var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
                 
+                var isExistAccountHolder = await accountHolderRepo.Entities.FirstOrDefaultAsync(ah => ah.NRIC == request.NRIC);
+
+
+                if(isExistAccountHolder != null)
+                {
+                    await transaction.RollbackAsync();
+                    throw new ValidationException("ACCOUNT_HOLDER_EXISTS", $"Account holder with NRIC {request.NRIC} already exists.");
+                }
+
                 // Create Account Holder
                 var newAccountHolder = new AccountHolder
                 {
