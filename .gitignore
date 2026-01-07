@@ -361,15 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/TheCoffeeHand/appsettings.json
-/TheCoffeeHand/appsettings.Development.json
-/TheCoffeeHand/thecoffeehand-3bf49-firebase-adminsdk-fbsvc-bc50f37e05.json
-/TheCoffeeHand/appsettings.json
-/TheCoffeeHand/appsettings.Development.json
-/TheCoffeeHand/thecoffeehand-3bf49-firebase-adminsdk-fbsvc-bc50f37e05.json
-/TheCoffeeHand/TheCoffeeHandDb.db
-/TheCoffeeHand/TheCoffeeHandDb.db-shm
-/TheCoffeeHand/TheCoffeeHandDb.db-wal
-/TheCoffeeHand/.env
-/TheCoffeeHand/the-coffe-hand-firebase-adminsdk-fbsvc-e8c2f55c3e.json
+**/appsettings.*.json
+
+
 
