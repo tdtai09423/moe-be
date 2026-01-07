@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using MOE_System.Infrastructure.Data;
 using MOE_System.Application.Interfaces;
@@ -8,8 +9,12 @@ namespace MOE_System.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Get connection string from configuration
+        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
         // Register DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
