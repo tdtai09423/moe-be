@@ -2,6 +2,7 @@
 using Moq;
 using MOE_System.Application.Admin.DTOs.AccountHolder;
 using MOE_System.Application.Admin.Services;
+using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Interfaces;
 using MOE_System.Domain.Entities;
@@ -158,30 +159,34 @@ namespace MOE_System.Admin.UnitTest
                 }
             };
 
-            _mockAccountHolderRepo.Setup(r => r.GetAllAsync())
-                .ReturnsAsync(accountHolders);
+            var paginatedList = new PaginatedList<AccountHolder>(accountHolders, 2, 1, 20);
+            _mockAccountHolderRepo.Setup(r => r.GetPagging(It.IsAny<IQueryable<AccountHolder>>(), 1, 20))
+                .ReturnsAsync(paginatedList);
 
             // Act
-            var result = await _service.GetAccountHoldersAsync();
+            var result = await _service.GetAccountHoldersAsync(1, 20);
 
             // Assert
-            Assert.Equal(2, result.Count);
-            Assert.Equal("John Doe", result[0].FullName);
-            Assert.Equal("Jane Smith", result[1].FullName);
+            Assert.Equal(2, result.Items.Count);
+            Assert.Equal("John Doe", result.Items[0].FullName);
+            Assert.Equal("Jane Smith", result.Items[1].FullName);
+            Assert.Equal(2, result.TotalCount);
         }
 
         [Fact]
         public async Task GetAccountHoldersAsync_WhenNoAccountHolders_ReturnsEmptyList()
         {
             // Arrange
-            _mockAccountHolderRepo.Setup(r => r.GetAllAsync())
-                .ReturnsAsync([]);
+            var paginatedList = new PaginatedList<AccountHolder>([], 0, 1, 20);
+            _mockAccountHolderRepo.Setup(r => r.GetPagging(It.IsAny<IQueryable<AccountHolder>>(), 1, 20))
+                .ReturnsAsync(paginatedList);
 
             // Act
-            var result = await _service.GetAccountHoldersAsync();
+            var result = await _service.GetAccountHoldersAsync(1, 20);
 
             // Assert
-            Assert.Empty(result);
+            Assert.Empty(result.Items);
+            Assert.Equal(0, result.TotalCount);
         }
 
         [Fact]
@@ -202,15 +207,16 @@ namespace MOE_System.Admin.UnitTest
                 }
             };
 
-            _mockAccountHolderRepo.Setup(r => r.GetAllAsync())
-                .ReturnsAsync(accountHolders);
+            var paginatedList = new PaginatedList<AccountHolder>(accountHolders, 1, 1, 20);
+            _mockAccountHolderRepo.Setup(r => r.GetPagging(It.IsAny<IQueryable<AccountHolder>>(), 1, 20))
+                .ReturnsAsync(paginatedList);
 
             // Act
-            var result = await _service.GetAccountHoldersAsync();
+            var result = await _service.GetAccountHoldersAsync(1, 20);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal(30, result[0].Age);
+            Assert.Single(result.Items);
+            Assert.Equal(30, result.Items[0].Age);
         }
 
         #endregion
