@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MOE_System.Application.DTOs.AccountHolder
+namespace MOE_System.Application.Admin.DTOs.AccountHolder
 {
     public class AccountHolderDetailResponse
     {

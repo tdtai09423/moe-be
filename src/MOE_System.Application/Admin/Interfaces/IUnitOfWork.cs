@@ -1,7 +1,7 @@
 ﻿using MOE_System.Domain.Common;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace MOE_System.Application.Interfaces
+namespace MOE_System.Application.Admin.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {

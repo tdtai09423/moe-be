@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using MOE_System.Application.Interfaces;
-using MOE_System.Application.Services.Admin;
+using MOE_System.Application.Admin.Interfaces;
+using MOE_System.Application.Admin.Services;
 
 namespace MOE_System.Application;
 
@@ -10,7 +10,13 @@ public static class DependencyInjection
     {
         // Register Application services here
         // Example: services.AddScoped<IService, Service>();
-        services.AddScoped<IAccountHolderService, AccountHolderService>();
+        #region Admin Services
+            services.AddScoped<IAccountHolderService, AccountHolderService>();
+        #endregion
+
+        #region EServices
+        // services.AddScoped<IEService, EService>();
+        #endregion
         return services;
     }
 }

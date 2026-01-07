@@ -1,12 +1,12 @@
-﻿using MOE_System.Application.DTOs.AccountHolder;
-using MOE_System.Application.Interfaces;
+﻿using MOE_System.Application.Admin.DTOs.AccountHolder;
+using MOE_System.Application.Admin.Interfaces;
 using MOE_System.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MOE_System.Application.Services.Admin
+namespace MOE_System.Application.Admin.Services
 {
     public class AccountHolderService : IAccountHolderService
     {

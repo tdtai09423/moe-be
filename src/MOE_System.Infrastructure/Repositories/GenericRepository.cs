@@ -1,8 +1,8 @@
-﻿using MOE_System.Application.Interfaces;
-using MOE_System.Application.Common;
+﻿using MOE_System.Application.Common;
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using MOE_System.Application.Admin.Interfaces;
 
 namespace MOE_System.Infrastructure.Repositories
 {
