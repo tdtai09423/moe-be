@@ -8,6 +8,7 @@ namespace MOE_System.Application.Admin.Interfaces
     public interface IAccountHolderService
     {
         Task<List<AccountHolderResponse>> GetAccountHoldersAsync();
-        Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(int accountHolderId);
+        Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId);
+        Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request);
     }
 }
