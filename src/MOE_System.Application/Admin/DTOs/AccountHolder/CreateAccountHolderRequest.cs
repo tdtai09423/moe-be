@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,27 +11,27 @@ namespace MOE_System.Application.Admin.DTOs.AccountHolder
     {
         [Required(ErrorMessage = "NRIC is required.")]
         [StringLength(50, MinimumLength = 9, ErrorMessage = "NRIC must be between 9 and 50 characters.")]
-        public string NRIC { get; set; } = string.Empty;
+        public required string NRIC { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "First name is required.")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters.")]
-        public string FirstName { get; set; } = string.Empty;
+        public required string FirstName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Last name is required.")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters.")]
-        public string LastName { get; set; } = string.Empty;
+        public required string LastName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Date of birth is required.")]
-        public DateTime DateOfBirth { get; set; }
+        public required DateTime DateOfBirth { get; set; } = default;
 
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Invalid email format.")]
         [StringLength(256, ErrorMessage = "Email must not exceed 256 characters.")]
-        public string Email { get; set; } = string.Empty;
+        public required string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required.")]
         [Phone(ErrorMessage = "Invalid phone number format.")]
-        public string ContactNumber { get; set; } = string.Empty;
+        public required string ContactNumber { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

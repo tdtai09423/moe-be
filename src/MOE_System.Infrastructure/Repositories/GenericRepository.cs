@@ -2,7 +2,7 @@
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using MOE_System.Application.Admin.Interfaces;
+using MOE_System.Application.Common.Interfaces;
 
 namespace MOE_System.Infrastructure.Repositories
 {

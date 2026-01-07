@@ -1,7 +1,7 @@
 ﻿using MOE_System.Application.Common;
 using System.Linq.Expressions;
 
-namespace MOE_System.Application.Admin.Interfaces
+namespace MOE_System.Application.Common.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
