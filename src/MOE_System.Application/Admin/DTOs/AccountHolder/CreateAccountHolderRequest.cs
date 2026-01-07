@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace MOE_System.Application.DTOs.AccountHolder
+namespace MOE_System.Application.Admin.DTOs.AccountHolder
 {
     public class CreateAccountHolderRequest : IValidatableObject
     {

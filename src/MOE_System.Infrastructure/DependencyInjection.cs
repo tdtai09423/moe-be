@@ -2,8 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using MOE_System.Infrastructure.Data;
-using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Repositories;
+using MOE_System.Application.Admin.Interfaces;
 
 namespace MOE_System.Infrastructure;
 
