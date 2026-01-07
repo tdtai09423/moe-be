@@ -15,8 +15,9 @@ This project follows Clean Architecture principles with four main layers:
 - Contains business logic and use cases
 - Depends only on Domain layer
 - **Folders:**
-  - `Interfaces/` - Application interfaces
+  - `Interfaces/` - Application interfaces (IGenericRepository, IUnitOfWork)
   - `Services/` - Application services
+  - `Common/` - Shared application classes (PaginatedList)
 - **Key Files:**
   - `DependencyInjection.cs` - Registers application services
 
@@ -42,7 +43,20 @@ This project follows Clean Architecture principles with four main layers:
 
 ### NuGet Packages
 - **Swashbuckle.AspNetCore** (10.1.0) - Swagger/OpenAPI documentation
+- **Microsoft.EntityFrameworkCore** (10.0.1) - ORM for data access
+- **Microsoft.EntityFrameworkCore.SqlServer** (10.0.1) - SQL Server provider
+- **Microsoft.EntityFrameworkCore.Tools** (10.0.1) - EF Core CLI tools for migrations
 - **Microsoft.Extensions.DependencyInjection.Abstractions** (10.0.1) - Dependency injection
+
+### Database
+The application uses SQL Server by default. The connection string is configured in `appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=MOE_SystemDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  }
+}
+```
 
 ## Running the Application
 
@@ -88,6 +102,46 @@ Each layer has its own `DependencyInjection.cs` file with extension methods:
 - `AddInfrastructure()` - Registers infrastructure services
 
 ## Getting Started
+
+### Repository Pattern
+The project implements the **Generic Repository** and **Unit of Work** patterns:
+- **IGenericRepository<T>** - Provides CRUD operations and pagination
+- **IUnitOfWork** - Manages transactions and provides repository instances
+- Implementations are in the Infrastructure layer
+
+### BaseEntity
+All domain entities should inherit from `BaseEntity` which provides:
+- `Id` (string) - Primary key (GUID)
+- `CreatedAt` / `CreatedBy` - Creation audit
+- `UpdatedAt` / `UpdatedBy` - Update audit
+- `DeletedAt` / `DeletedBy` - Soft delete support
+- `IsDeleted` - Computed property for soft delete status
+
+### Using Repositories
+```csharp
+public class YourService
+{
+    private readonly IUnitOfWork _unitOfWork;
+    
+    public YourService(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+    
+    public async Task<YourEntity> GetByIdAsync(string id)
+    {
+        var repo = _unitOfWork.GetRepository<YourEntity>();
+        return await repo.GetByIdAsync(id);
+    }
+    
+    public async Task CreateAsync(YourEntity entity)
+    {
+        var repo = _unitOfWork.GetRepository<YourEntity>();
+        await repo.InsertAsync(entity);
+        await _unitOfWork.SaveAsync();
+    }
+}
+```
 
 1. **Add Domain Entities:**
    - Create entity classes in `src/MOE_System.Domain/Entities/`
