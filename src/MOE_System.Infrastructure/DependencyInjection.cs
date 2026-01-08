@@ -2,8 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using MOE_System.Infrastructure.Data;
-using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Repositories;
+using MOE_System.Infrastructure.Services;
+using MOE_System.Application.Interfaces;
+using MOE_System.Application.Common.Interfaces;
 
 namespace MOE_System.Infrastructure;
 
@@ -24,6 +26,9 @@ public static class DependencyInjection
 
         // Register Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        
+        // Register Services
+        services.AddSingleton<IPasswordService, PasswordService>();
         
         return services;
     }

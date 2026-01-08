@@ -1,7 +1,7 @@
 ﻿using MOE_System.Domain.Common;
-using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Storage;
+using MOE_System.Application.Common.Interfaces;
 
 namespace MOE_System.Infrastructure.Repositories
 {

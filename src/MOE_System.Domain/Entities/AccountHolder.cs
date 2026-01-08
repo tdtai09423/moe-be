@@ -17,6 +17,6 @@ public class AccountHolder : BaseEntity
     public string EducationLevel { get; set; } = string.Empty;
     public string SchoolingStatus { get; set; } = string.Empty;
 
-    // Navigation property (1-to-1)
+    // Navigation property (1-to-1)                                            
     public EducationAccount? EducationAccount { get; set; }
 }

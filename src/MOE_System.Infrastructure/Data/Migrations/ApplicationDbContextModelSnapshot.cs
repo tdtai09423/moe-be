@@ -99,7 +99,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AccountHolders");
+                    b.ToTable("AccountHolders", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Admin", b =>
@@ -119,7 +119,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.BatchExecution", b =>
@@ -140,7 +140,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BatchExecutions");
+                    b.ToTable("BatchExecutions", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.BatchRuleExecution", b =>
@@ -162,7 +162,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("RuleID");
 
-                    b.ToTable("BatchRuleExecutions");
+                    b.ToTable("BatchRuleExecutions", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Course", b =>
@@ -221,7 +221,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProviderId");
 
-                    b.ToTable("Courses");
+                    b.ToTable("Courses", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.CourseOffering", b =>
@@ -271,7 +271,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("CourseID");
 
-                    b.ToTable("CourseOfferings");
+                    b.ToTable("CourseOfferings", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.EducationAccount", b =>
@@ -332,7 +332,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasIndex("AccountHolderId")
                         .IsUnique();
 
-                    b.ToTable("EducationAccounts");
+                    b.ToTable("EducationAccounts", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Enrollment", b =>
@@ -362,7 +362,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("EducationAccountId");
 
-                    b.ToTable("Enrollments");
+                    b.ToTable("Enrollments", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.HistoryOfChange", b =>
@@ -390,7 +390,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("EducationAccountId");
 
-                    b.ToTable("HistoryOfChanges");
+                    b.ToTable("HistoryOfChanges", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Invoice", b =>
@@ -418,7 +418,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("EnrollmentID");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Provider", b =>
@@ -433,7 +433,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Providers");
+                    b.ToTable("Providers", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.TopupRule", b =>
@@ -464,7 +464,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TopupRules");
+                    b.ToTable("TopupRules", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Transaction", b =>
@@ -505,7 +505,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.BatchRuleExecution", b =>
