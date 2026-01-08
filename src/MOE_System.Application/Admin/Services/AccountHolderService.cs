@@ -13,7 +13,7 @@ using static MOE_System.Domain.Common.BaseException;
 
 namespace MOE_System.Application.Admin.Services
 {
-    public class AccountHolderService : IAccountHolderService
+    public class AccountHolderService : Interfaces.IAccountHolderService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
