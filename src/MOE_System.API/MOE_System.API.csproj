@@ -20,7 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\EService\" />
+    <Folder Include="Controllers\Admin\" />
+    <Folder Include="Controllers\Admin\" />
   </ItemGroup>
 
 </Project>
