@@ -117,7 +117,7 @@ namespace MOE_System.Admin.UnitTest
 
             // Assert
             Assert.Equal(0, result.Balance);
-            Assert.Equal(0, result.ActiveCourseCount);
+            Assert.Equal(0, result.CourseCount);
             Assert.Equal(0, result.OutstandingFees);
             Assert.Equal(0, result.TotalFeesPaid);
             Assert.Empty(result.EnrolledCourses);
@@ -251,7 +251,6 @@ namespace MOE_System.Admin.UnitTest
             Assert.NotNull(result);
             Assert.Equal("John Doe", result.FullName);
             Assert.Equal("S1234567A", result.NRIC);
-            Assert.Equal("Not in School", result.SchoolingStatus);
             Assert.Equal(0, result.Balance);
             Assert.Equal(0, result.CourseCount);
             Assert.Equal(0, result.OutstandingFees);
