@@ -2,14 +2,14 @@
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using MOE_System.Application.Admin.Interfaces;
+using MOE_System.Application.Common.Interfaces;
 
 namespace MOE_System.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        public ApplicationDbContext _context;
+        public DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)
         {
