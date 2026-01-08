@@ -1,4 +1,5 @@
-﻿using MOE_System.Application.EService.Interfaces.Repositories;
+﻿using MOE_System.Application.Common.Interfaces;
+using MOE_System.Application.EService.Interfaces.Repositories;
 using MOE_System.Application.EService.Interfaces.Services;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,17 @@ namespace MOE_System.Application.EService.Services
 {
     public class EducationAccountService : IEducationAccountService
     {
-        private readonly IEducationAccountRepository _educationAccountRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EducationAccountService(IEducationAccountRepository educationAccountRepo)
+        public EducationAccountService(IUnitOfWork unitOfWork)
         {
-            _educationAccountRepo = educationAccountRepo;
+            _unitOfWork = unitOfWork;
         }
+
 
         public async Task<decimal> GetEducationAccountBalanceAsync(string educationAccountId)
         {
-            var educationAccount = await _educationAccountRepo
+            var educationAccount = await _unitOfWork.EducationAccounts
                 .GetEducationAccountAsync(educationAccountId);
 
             var balance = educationAccount.Balance;

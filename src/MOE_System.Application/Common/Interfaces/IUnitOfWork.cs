@@ -1,5 +1,6 @@
-﻿using MOE_System.Domain.Common;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using MOE_System.Application.EService.Interfaces.Repositories;
+using MOE_System.Domain.Common;
 
 namespace MOE_System.Application.Common.Interfaces
 {
@@ -13,5 +14,8 @@ namespace MOE_System.Application.Common.Interfaces
         void CommitTransaction();
         void RollBack();
         bool IsValid<T>(string id) where T : BaseEntity;
+        IAccountHolderRepository AccountHolders { get; }
+        IEducationAccountRepository EducationAccounts { get; }
+        IEnrollmentRepository Enrollments { get; }
     }
 }

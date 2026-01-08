@@ -1,4 +1,5 @@
-﻿using MOE_System.Application.EService.DTOs;
+﻿using MOE_System.Application.Common.Interfaces;
+using MOE_System.Application.EService.DTOs;
 using MOE_System.Application.EService.Interfaces.Repositories;
 using MOE_System.Application.EService.Interfaces.Services;
 using MOE_System.Domain.Common;
@@ -11,16 +12,16 @@ namespace MOE_System.Application.EService.Services
 {
     public class EnrollmentService : IEnrollmentService
     {
-        private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EnrollmentService(IEnrollmentRepository enrollmentRepository)
+        public EnrollmentService(IUnitOfWork unitOfWork)
         {
-            _enrollmentRepository = enrollmentRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<ActiveCourseForAccountResponse>> GetActiveCoursesForAccountAsync(string accountHolderId)
         {
-            var enrollments = await _enrollmentRepository.GetActiveCoursesForAccountAsync(accountHolderId);
+            var enrollments = await _unitOfWork.Enrollments.GetActiveCoursesForAccountAsync(accountHolderId);
 
             if (enrollments == null || !enrollments.Any())
             {
@@ -43,20 +44,21 @@ namespace MOE_System.Application.EService.Services
 
         public async Task<decimal> GetOutstandingFeeAsync(string educationAccountId)
         {
-            var enrollments = await _enrollmentRepository.GetOutstandingFeeForAccountAsync(educationAccountId);
+            var enrollments = await _unitOfWork.Enrollments.GetOutstandingFeeForAccountAsync(educationAccountId);
 
             if (educationAccountId == null || !enrollments.Any())
             {
                 throw new BaseException.NotFoundException("Enrollments not found!");
             }
+            decimal totalInvoiceAmount = enrollments
+                .SelectMany(e => e.Invoices).Sum(i => i.Amount);
 
-            var totalFee = enrollments.Sum(e => e.CourseOffering.Course.FeeAmount);
+            decimal totalTransactionAmount = enrollments
+                .SelectMany(e => e.Invoices)
+                .SelectMany(i => i.Transactions)
+                .Sum(t => t.Amount);
 
-            var totalPaid = enrollments.SelectMany(e => e.Invoices)
-                                       .SelectMany(i => i.Transactions)
-                                       .Sum(t => t.Amount);
-
-            return totalFee - totalPaid;
+            return totalInvoiceAmount - totalTransactionAmount;
         }
     }
 }

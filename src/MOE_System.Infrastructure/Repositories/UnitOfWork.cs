@@ -1,7 +1,8 @@
-﻿using MOE_System.Domain.Common;
-using MOE_System.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 using MOE_System.Application.Common.Interfaces;
+using MOE_System.Application.EService.Interfaces.Repositories;
+using MOE_System.Domain.Common;
+using MOE_System.Infrastructure.Data;
 
 namespace MOE_System.Infrastructure.Repositories
 {
@@ -9,10 +10,16 @@ namespace MOE_System.Infrastructure.Repositories
     {
         private readonly ApplicationDbContext _context;
         private bool disposed = false;
+        public IAccountHolderRepository AccountHolders { get; private set; }
+        public IEducationAccountRepository EducationAccounts { get; private set; }
+        public IEnrollmentRepository Enrollments { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context = context;
+            _context = context; 
+            AccountHolders = new AccountHolderRepository(_context);
+            EducationAccounts = new EducationAccountRepository(_context);
+            Enrollments = new EnrollmentRepository(_context);   
         }
 
         public IGenericRepository<T> GetRepository<T>() where T : class

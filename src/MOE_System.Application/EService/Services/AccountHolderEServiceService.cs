@@ -1,4 +1,5 @@
 ﻿using MOE_System.Application.Admin.DTOs.AccountHolder;
+using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.EService.DTOs;
 using MOE_System.Application.EService.Interfaces.Repositories;
 using MOE_System.Application.EService.Interfaces.Services;
@@ -11,16 +12,16 @@ namespace MOE_System.Application.EService.Services
 {
     public class AccountHolderEServiceService : IAccountHolderEServiceService
     {
-        private readonly IAccountHolderRepository _accountHolderRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AccountHolderEServiceService(IAccountHolderRepository accountHolderRepo)
+        public AccountHolderEServiceService(IUnitOfWork unitOfWork)
         {
-            _accountHolderRepo = accountHolderRepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<AccountHolderInfoResponse> GetAccountHolderInformationAsync(string accountHolderId)
         {
-            var accountHolder = await _accountHolderRepo.GetAccountHolderAsync(accountHolderId);
+            var accountHolder = await _unitOfWork.AccountHolders.GetAccountHolderAsync(accountHolderId);
 
             if (accountHolder == null)
             {

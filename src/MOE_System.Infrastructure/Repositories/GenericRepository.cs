@@ -8,8 +8,8 @@ namespace MOE_System.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        public ApplicationDbContext _context;
-        public DbSet<T> _dbSet;
+        protected readonly ApplicationDbContext _context;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)
         {

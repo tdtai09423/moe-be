@@ -29,8 +29,6 @@ namespace MOE_System.Infrastructure.Repositories
         public async Task<IEnumerable<Enrollment>> GetOutstandingFeeForAccountAsync(string educationAccountId)
         {
             var enrollments = await _context.Enrollments
-                .Include(e => e.CourseOffering)
-                    .ThenInclude(c => c.Course)
                 .Include(e => e.Invoices)
                     .ThenInclude(i => i.Transactions)
                 .Where(e => e.EducationAccountId == educationAccountId)
