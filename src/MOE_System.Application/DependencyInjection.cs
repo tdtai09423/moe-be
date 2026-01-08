@@ -3,6 +3,8 @@ using MOE_System.Application.Admin.Interfaces;
 using MOE_System.Application.Admin.Services;
 using MOE_System.Application.EService.Interfaces.Services;
 using MOE_System.Application.EService.Services;
+using MOE_System.Application.Interfaces.Services;
+using MOE_System.Application.Services.Dashboard;
 
 namespace MOE_System.Application;
 
@@ -23,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IAccountHolderEServiceService, AccountHolderEServiceService>();
         services.AddScoped<IEducationAccountService, EducationAccountService>();
         services.AddScoped<IEnrollmentService, EnrollmentService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
 }

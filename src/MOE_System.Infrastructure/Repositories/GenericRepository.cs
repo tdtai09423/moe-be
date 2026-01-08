@@ -94,5 +94,17 @@ namespace MOE_System.Infrastructure.Repositories
         {
             await _dbSet.AddRangeAsync(obj);
         }
+
+        public async Task<decimal> SumAsync(Expression<Func<T, bool>>? predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            return await query.SumAsync(selector, cancellationToken);
+        }
     }
 }
