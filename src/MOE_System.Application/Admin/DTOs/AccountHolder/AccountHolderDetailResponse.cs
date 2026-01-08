@@ -7,7 +7,7 @@ namespace MOE_System.Application.Admin.DTOs.AccountHolder
     public class AccountHolderDetailResponse
     {
         public decimal Balance { get; set; }
-        public int ActiveCourseCount { get; set; }
+        public int CourseCount { get; set; }
         public decimal OutstandingFees { get; set; }
         public decimal TotalFeesPaid { get; set; }
         public required StudentInformation StudentInformation { get; set; }
@@ -26,24 +26,29 @@ namespace MOE_System.Application.Admin.DTOs.AccountHolder
         public string ContactNumber { get; set; } = string.Empty;
         public string SchoolingStatus { get; set; } = string.Empty;
         public string EducationLevel { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
+        public string RegisteredAddress { get; set; } = string.Empty;
+        public string MailingAddress { get; set; } = string.Empty;
+        public bool? IsActive { get; set; } = null;
         public DateTime CreatedAt { get; set; }
     }
 
     public class EnrolledCourseInfo
     {
         public string CourseName { get; set; } = string.Empty;
+        public string BillingCycle { get; set; } = string.Empty;
+        public decimal TotalFree { get; set; }
+        public decimal CollectedFee { get; set; }
+        public string PaymentStatus { get; set; } = string.Empty;
+        public string NextPaymentDue { get; set; } = string.Empty;
         public DateTime EnrollmentDate { get; set; }
-        public decimal CourseFee { get; set; }
-        public string Status { get; set; } = string.Empty;
     }
-    
+
     public class OutstandingFeeInfo
     {
         public string CourseName { get; set; } = string.Empty;
         public decimal OutstandingAmount { get; set; }
         public DateTime DueDate { get; set; }
-        public string Status { get; set; } = string.Empty; 
+        public string PaymentStatus { get; set; } = string.Empty; 
     }
 
     public class PaymentHistoryInfo

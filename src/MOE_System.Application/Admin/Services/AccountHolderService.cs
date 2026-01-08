@@ -38,7 +38,7 @@ namespace MOE_System.Application.Admin.Services
             var accountHolderDetailResponse = new AccountHolderDetailResponse
             {
                 Balance = accountHolder.EducationAccount?.Balance ?? 0,
-                ActiveCourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
+                CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
                 OutstandingFees = accountHolder.EducationAccount?.Enrollments?
                     .SelectMany(e => e.Invoices)
                     .Where(i => i.Status == "Outstanding") 
@@ -57,16 +57,21 @@ namespace MOE_System.Application.Admin.Services
                     ContactNumber = accountHolder.ContactNumber,
                     SchoolingStatus = accountHolder.SchoolingStatus,
                     EducationLevel = accountHolder.EducationLevel,
-                    IsActive = !accountHolder.IsDeleted,
+                    RegisteredAddress = accountHolder.RegisteredAddress,
+                    MailingAddress = accountHolder.MailingAddress,
                     CreatedAt = accountHolder.CreatedAt
                 },
                 EnrolledCourses = accountHolder.EducationAccount?.Enrollments?
                     .Select(e => new EnrolledCourseInfo
                     {
                         CourseName = e.CourseOffering?.Course?.CourseName ?? string.Empty,
+                        BillingCycle = e.CourseOffering?.Course?.BillingCycle ?? string.Empty,
+                        TotalFree = e.CourseOffering?.Course?.FeeAmount ?? 0,
+                        //CollectedFee - Implement later
                         EnrollmentDate = e.EnrollDate,
-                        CourseFee = e.CourseOffering?.Course?.FeeAmount ?? 0,
-                        Status = e.Status
+                        //NextPaymentDue - Implement later
+                        //PaymentStatus - implement later
+
                     }).ToList() ?? new List<EnrolledCourseInfo>(),
                 OutstandingFeesDetails = accountHolder.EducationAccount?.Enrollments?
                     .SelectMany(e => e.Invoices 
@@ -76,7 +81,7 @@ namespace MOE_System.Application.Admin.Services
                             CourseName = e.CourseOffering?.Course?.CourseName ?? string.Empty,
                             OutstandingAmount = i.Amount,
                             DueDate = i.DueDate,
-                            Status = i.Status
+                            PaymentStatus = i.Status
                         }))
                     .ToList() ?? new List<OutstandingFeeInfo>(),
                 PaymentHistory = accountHolder.EducationAccount?.Enrollments?
@@ -111,7 +116,6 @@ namespace MOE_System.Application.Admin.Services
                 NRIC = accountHolder.NRIC,
                 Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
                 Balance = accountHolder.EducationAccount?.Balance ?? 0,
-                SchoolingStatus = accountHolder.SchoolingStatus,
                 EducationLevel = accountHolder.EducationLevel,
                 CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
                 OutstandingFees = accountHolder.EducationAccount?.Enrollments?
@@ -184,7 +188,6 @@ namespace MOE_System.Application.Admin.Services
                     NRIC = newAccountHolder.NRIC,
                     Age = DateTime.Now.Year - newAccountHolder.DateOfBirth.Year,
                     Balance = newEducationAccount.Balance,
-                    SchoolingStatus = newAccountHolder.SchoolingStatus,
                     EducationLevel = newAccountHolder.EducationLevel,
                     CourseCount = 0,
                     OutstandingFees = 0
