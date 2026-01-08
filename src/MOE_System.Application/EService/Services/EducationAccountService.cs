@@ -1,4 +1,5 @@
 ﻿using MOE_System.Application.Common.Interfaces;
+using MOE_System.Application.EService.DTOs;
 using MOE_System.Application.EService.Interfaces.Repositories;
 using MOE_System.Application.EService.Interfaces.Services;
 using System;
@@ -17,18 +18,19 @@ namespace MOE_System.Application.EService.Services
         }
 
 
-        public async Task<decimal> GetEducationAccountBalanceAsync(string educationAccountId)
+        public async Task<EducationAccountBalanceResponse> GetEducationAccountBalanceAsync(string educationAccountId)
         {
             var educationAccount = await _unitOfWork.EducationAccounts
                 .GetEducationAccountAsync(educationAccountId);
 
-            var balance = educationAccount.Balance;
-            return balance;
+            var res = new EducationAccountBalanceResponse
+            {
+                Id = educationAccount.Id,
+                Balance = educationAccount.Balance,
+            };
+
+            return res;
         }
 
-        public Task<decimal> GetOutstandingFeeAsync(string educationAccountId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

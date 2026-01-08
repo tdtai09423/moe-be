@@ -9,6 +9,6 @@ namespace MOE_System.Application.EService.Interfaces.Services
     public interface IEnrollmentService
     {
         Task<IEnumerable<ActiveCourseForAccountResponse>> GetActiveCoursesForAccountAsync(string accountHolderId);
-        Task<decimal> GetOutstandingFeeAsync(string educationAccountId);
+        Task<EducationAccountOutstandingFeeResponse> GetOutstandingFeeAsync(string educationAccountId);
     }
 }

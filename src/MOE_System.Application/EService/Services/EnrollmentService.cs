@@ -42,7 +42,7 @@ namespace MOE_System.Application.EService.Services
             return res;
         }
 
-        public async Task<decimal> GetOutstandingFeeAsync(string educationAccountId)
+        public async Task<EducationAccountOutstandingFeeResponse> GetOutstandingFeeAsync(string educationAccountId)
         {
             var enrollments = await _unitOfWork.Enrollments.GetOutstandingFeeForAccountAsync(educationAccountId);
 
@@ -58,7 +58,13 @@ namespace MOE_System.Application.EService.Services
                 .SelectMany(i => i.Transactions)
                 .Sum(t => t.Amount);
 
-            return totalInvoiceAmount - totalTransactionAmount;
+            var res = new EducationAccountOutstandingFeeResponse
+            {
+                Id = educationAccountId,
+                OutStandingFee = totalInvoiceAmount - totalTransactionAmount,
+            };
+
+            return res;
         }
     }
 }

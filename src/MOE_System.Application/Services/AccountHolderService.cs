@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.DTOs;
 using MOE_System.Application.Interfaces;
 using MOE_System.Domain.Entities;
