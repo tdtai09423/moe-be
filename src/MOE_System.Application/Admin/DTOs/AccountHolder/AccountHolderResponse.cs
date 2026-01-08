@@ -6,6 +6,7 @@ namespace MOE_System.Application.Admin.DTOs.AccountHolder
 {
     public class AccountHolderResponse
     {
+        public string Id { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string NRIC { get; set; } = string.Empty;
         public int Age { get; set; }

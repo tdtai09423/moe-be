@@ -11,6 +11,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Register Application services here
+        services.AddScoped<IEducationAccountService, EducationAccountService>();
         // Example: services.AddScoped<IService, Service>();
         #region Admin Services
             services.AddScoped<IAccountHolderService, AccountHolderService>();
