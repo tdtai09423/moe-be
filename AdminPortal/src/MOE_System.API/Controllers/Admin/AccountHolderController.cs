@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MOE_System.Application.Admin.DTOs.AccountHolder;
-using MOE_System.Application.Admin.Interfaces;
+using MOE_System.Application.DTOs;
+using MOE_System.Application.Interfaces;
 using MOE_System.Application.Common;
 
 namespace MOE_System.API.Controllers.Admin

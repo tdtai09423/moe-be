@@ -27,8 +27,10 @@ public static class DependencyInjection
         // Register Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-        // Register Custom Repositories here
-        // Example: services.AddScoped<ICustomRepository, CustomRepository>();
+        // Register Custom Repositories
+        services.AddScoped<IAccountHolderRepository, AccountHolderRepository>();
+        services.AddScoped<IEducationAccountRepository, EducationAccountRepository>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
         services.AddScoped<IPasswordService, PasswordService>();
 

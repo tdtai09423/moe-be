@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
-using MOE_System.Application.Admin.DTOs.AccountHolder;
-using MOE_System.Application.Admin.Services;
+using MOE_System.Application.DTOs;
+using MOE_System.Application.Services;
 using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Interfaces;

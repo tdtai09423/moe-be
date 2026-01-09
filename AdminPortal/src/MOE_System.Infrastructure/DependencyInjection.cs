@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using MOE_System.Infrastructure.Data;
 using MOE_System.Infrastructure.Repositories;
 using MOE_System.Application.Common.Interfaces;
-using MOE_System.Application.EService.Interfaces.Repositories;
 using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Services;
 
@@ -27,11 +26,6 @@ public static class DependencyInjection
 
         // Register Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-        // Register Custom Repository
-        services.AddScoped<IAccountHolderRepository, AccountHolderRepository>();
-        services.AddScoped<IEducationAccountRepository, EducationAccountRepository>();
-        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
         services.AddScoped<IPasswordService, PasswordService>();
 
