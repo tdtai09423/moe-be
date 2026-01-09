@@ -9,6 +9,7 @@ public class AccountHolder : BaseEntity
     public DateTime DateOfBirth { get; set; }
     public string RegisteredAddress { get; set; } = string.Empty;
     public string MailingAddress { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty; // Combined address field
     public string Email { get; set; } = string.Empty;
     public string ContactNumber { get; set; } = string.Empty;
     public string NRIC { get; set; } = string.Empty;

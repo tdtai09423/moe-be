@@ -116,14 +116,14 @@ namespace MOE_System.Admin.UnitTest
         //            var result = await _service.GetAccountHolderDetailAsync(accountHolderId);
 
             // Assert
-            Assert.Equal(0, result.Balance);
-            Assert.Equal(0, result.CourseCount);
-            Assert.Equal(0, result.OutstandingFees);
-            Assert.Equal(0, result.TotalFeesPaid);
-            Assert.Empty(result.EnrolledCourses);
-            Assert.Empty(result.OutstandingFeesDetails);
-            Assert.Empty(result.PaymentHistory);
-        }
+        //     Assert.Equal(0, result.Balance);
+        //     Assert.Equal(0, result.CourseCount);
+        //     Assert.Equal(0, result.OutstandingFees);
+        //     Assert.Equal(0, result.TotalFeesPaid);
+        //     Assert.Empty(result.EnrolledCourses);
+        //     Assert.Empty(result.OutstandingFeesDetails);
+        //     Assert.Empty(result.PaymentHistory);
+        // }
 
         //        #endregion
 
@@ -248,12 +248,12 @@ namespace MOE_System.Admin.UnitTest
         //            var result = await _service.AddAccountHolderAsync(request);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal("John Doe", result.FullName);
-            Assert.Equal("S1234567A", result.NRIC);
-            Assert.Equal(0, result.Balance);
-            Assert.Equal(0, result.CourseCount);
-            Assert.Equal(0, result.OutstandingFees);
+            // Assert.NotNull(result);
+            // Assert.Equal("John Doe", result.FullName);
+            // Assert.Equal("S1234567A", result.NRIC);
+            // Assert.Equal(0, result.Balance);
+            // Assert.Equal(0, result.CourseCount);
+            // Assert.Equal(0, result.OutstandingFees);
 
         //            _mockAccountHolderRepo.Verify(r => r.InsertAsync(It.IsAny<AccountHolder>()), Times.Once);
         //            _mockEducationAccountRepo.Verify(r => r.InsertAsync(It.IsAny<EducationAccount>()), Times.Once);

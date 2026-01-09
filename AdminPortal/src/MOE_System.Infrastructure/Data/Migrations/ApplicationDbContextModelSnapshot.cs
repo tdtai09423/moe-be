@@ -27,6 +27,10 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CitizenId")
                         .IsRequired()
                         .HasMaxLength(50)

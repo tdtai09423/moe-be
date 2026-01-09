@@ -1,0 +1,6 @@
+@MOE_System.EService.API_HostAddress = http://localhost:5222
+
+GET {{MOE_System.EService.API_HostAddress}}/api/
+Accept: application/json
+
+###
