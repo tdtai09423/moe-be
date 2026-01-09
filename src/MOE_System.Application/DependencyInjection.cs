@@ -5,6 +5,7 @@ using MOE_System.Application.EService.Interfaces.Services;
 using MOE_System.Application.EService.Services;
 using MOE_System.Application.Interfaces.Services;
 using MOE_System.Application.Services.Dashboard;
+using FluentValidation;
 
 namespace MOE_System.Application;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         // Register Application services here
         services.AddScoped<IEducationAccountService, EducationAccountService>();
         // Example: services.AddScoped<IService, Service>();

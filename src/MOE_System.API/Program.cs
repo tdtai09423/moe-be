@@ -4,11 +4,14 @@ using MOE_System.API.ServicesRegister;
 using MOE_System.API.MiddleWares;
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using MOE_System.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(
+    options => options.Filters.Add<ValidationFilter>()
+);
 
 // Add Application and Infrastructure layers
 builder.Services.AddApplication();
