@@ -1,9 +1,7 @@
-﻿
-
-using MOE_System.Application.Common;
+﻿using MOE_System.Application.Common;
 using System.Linq.Expressions;
 
-namespace MOE_System.Application.Interfaces
+namespace MOE_System.Application.Common.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
@@ -32,5 +30,6 @@ namespace MOE_System.Application.Interfaces
         //another
         T? Find(Expression<Func<T, bool>> predicate);
         Task<PaginatedList<T>> GetPagging(IQueryable<T> query, int index, int pageSize);
+        Task<decimal> SumAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default);
     }
 }

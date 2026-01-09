@@ -19,4 +19,9 @@
     <ProjectReference Include="..\MOE_System.Infrastructure\MOE_System.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Admin\" />
+    <Folder Include="Controllers\Admin\" />
+  </ItemGroup>
+
 </Project>

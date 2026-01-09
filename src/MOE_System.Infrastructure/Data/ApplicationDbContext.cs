@@ -51,6 +51,9 @@ public class ApplicationDbContext : DbContext
                 .WithOne(e => e.AccountHolder)
                 .HasForeignKey<EducationAccount>(e => e.AccountHolderId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.NRIC).IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
         });
 
         // Configure EducationAccount

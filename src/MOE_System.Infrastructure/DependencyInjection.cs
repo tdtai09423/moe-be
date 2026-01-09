@@ -2,8 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using MOE_System.Infrastructure.Data;
-using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Repositories;
+using MOE_System.Application.Common.Interfaces;
+using MOE_System.Application.EService.Interfaces.Repositories;
+using MOE_System.Application.Interfaces;
+using MOE_System.Infrastructure.Services;
 
 namespace MOE_System.Infrastructure;
 
@@ -12,9 +15,9 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Get connection string from configuration
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
+        
         // Register DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -24,7 +27,14 @@ public static class DependencyInjection
 
         // Register Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        
+
+        // Register Custom Repository
+        services.AddScoped<IAccountHolderRepository, AccountHolderRepository>();
+        services.AddScoped<IEducationAccountRepository, EducationAccountRepository>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
+        services.AddScoped<IPasswordService, PasswordService>();
+
         return services;
     }
 }

@@ -1,15 +1,15 @@
-﻿using MOE_System.Application.Interfaces;
-using MOE_System.Application.Common;
+﻿using MOE_System.Application.Common;
 using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using MOE_System.Application.Common.Interfaces;
 
 namespace MOE_System.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly ApplicationDbContext _context;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)
         {
@@ -93,6 +93,18 @@ namespace MOE_System.Infrastructure.Repositories
         public async Task InsertRangeAsync(List<T> obj)
         {
             await _dbSet.AddRangeAsync(obj);
+        }
+
+        public async Task<decimal> SumAsync(Expression<Func<T, bool>>? predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            return await query.SumAsync(selector, cancellationToken);
         }
     }
 }
