@@ -47,14 +47,13 @@ public class EducationAccountService : IEducationAccountService
         var outstandingInvoices = await _unitOfWork.GetRepository<Invoice>()
             .Entities
             .Include(i => i.Enrollment)
-                .ThenInclude(e => e!.CourseOffering)
-                .ThenInclude(co => co!.Course)
+                .ThenInclude(e => e!.Course)
             .Where(i => i.Enrollment!.EducationAccountId == accountId 
                         && (i.Status == "Pending" || i.Status == "Overdue"))
             .Select(i => new InvoiceDetailDto
             {
                 InvoiceId = i.Id,
-                CourseName = i.Enrollment!.CourseOffering!.Course!.CourseName,
+                CourseName = i.Enrollment!.Course!.CourseName,
                 Amount = i.Amount,
                 DueDate = i.DueDate,
                 Status = i.Status
