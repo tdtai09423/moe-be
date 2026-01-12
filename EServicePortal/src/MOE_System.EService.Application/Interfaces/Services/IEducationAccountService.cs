@@ -4,6 +4,7 @@ namespace MOE_System.EService.Application.Interfaces.Services
 {
     public interface IEducationAccountService
     {
-        Task<EducationAccountBalanceResponse> GetEducationAccountBalanceAsync(string educationAccountId);
+        Task<BalanceResponse> GetBalanceAsync(string educationAccountId);
+        Task<OutstandingFeeResponse> GetOutstandingFeeAsync(string educationAccountId);
     }
 }
