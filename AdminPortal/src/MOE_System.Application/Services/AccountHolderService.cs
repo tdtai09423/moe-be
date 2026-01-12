@@ -69,20 +69,19 @@ public class AccountHolderService : IAccountHolderService
 
         var activeCourses = await _unitOfWork.GetRepository<Enrollment>()
             .Entities
-            .Include(e => e.CourseOffering)
-                .ThenInclude(co => co!.Course)
+            .Include(e => e.Course)
                 .ThenInclude(c => c!.Provider)
             .Where(e => e.EducationAccountId == accountHolder.EducationAccount.Id 
                         && e.Status == "Active")
             .Select(e => new ActiveCourseDto
             {
-                CourseId = e.CourseOffering!.Course!.Id,
-                CourseName = e.CourseOffering!.Course!.CourseName,
-                CourseCode = e.CourseOffering!.Course!.CourseCode,
-                ProviderName = e.CourseOffering!.Course!.Provider!.Name,
-                TermName = e.CourseOffering!.TermName,
-                StartDate = e.CourseOffering!.StartDate,
-                EndDate = e.CourseOffering!.EndDate,
+                CourseId = e.Course!.Id,
+                CourseName = e.Course!.CourseName,
+                CourseCode = e.Course!.CourseCode,
+                ProviderName = e.Course!.Provider!.Name,
+                TermName = e.Course!.TermName,
+                StartDate = e.Course!.StartDate,
+                EndDate = e.Course!.EndDate,
                 EnrollDate = e.EnrollDate,
                 EnrollmentStatus = e.Status
             })
@@ -131,9 +130,9 @@ public class AccountHolderService : IAccountHolderService
             EnrolledCourses = accountHolder.EducationAccount?.Enrollments?
                 .Select(e => new EnrolledCourseInfo
                 {
-                    CourseName = e.CourseOffering?.Course?.CourseName ?? string.Empty,
-                    BillingCycle = e.CourseOffering?.Course?.BillingCycle ?? string.Empty,
-                    TotalFree = e.CourseOffering?.Course?.FeeAmount ?? 0,
+                    CourseName = e.Course?.CourseName ?? string.Empty,
+                    BillingCycle = e.Course?.BillingCycle ?? string.Empty,
+                    TotalFree = e.Course?.FeeAmount ?? 0,
                     //CollectedFee - Implement later
                     EnrollmentDate = e.EnrollDate,
                     //NextPaymentDue - Implement later
@@ -145,7 +144,7 @@ public class AccountHolderService : IAccountHolderService
                     .Where(i => i.Status == "Outstanding")
                     .Select(i => new OutstandingFeeInfo
                     {
-                        CourseName = e.CourseOffering?.Course?.CourseName ?? string.Empty,
+                        CourseName = e.Course?.CourseName ?? string.Empty,
                         OutstandingAmount = i.Amount,
                         DueDate = i.DueDate,
                         PaymentStatus = i.Status
@@ -157,7 +156,7 @@ public class AccountHolderService : IAccountHolderService
                 .Where(t => t.Status == "Completed" || t.Status == "Success")
                 .Select(t => new PaymentHistoryInfo
                 {
-                    CourseName = t.Invoice?.Enrollment?.CourseOffering?.Course?.CourseName ?? string.Empty,
+                    CourseName = t.Invoice?.Enrollment?.Course?.CourseName ?? string.Empty,
                     PaymentDate = t.TransactionAt,
                     AmountPaid = t.Amount,
                     Status = t.Status

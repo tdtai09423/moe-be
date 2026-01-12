@@ -11,8 +11,14 @@ public class Course : BaseEntity
     public string ProviderId { get; set; } = string.Empty;
     public string PaymentType { get; set; } = string.Empty;
     public string? BillingCycle { get; set; }
+    
+    // Fields from CourseOffering
+    public string TermName { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     // Navigation properties
     public Provider? Provider { get; set; }
-    public ICollection<CourseOffering> CourseOfferings { get; set; } = new List<CourseOffering>();
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }
