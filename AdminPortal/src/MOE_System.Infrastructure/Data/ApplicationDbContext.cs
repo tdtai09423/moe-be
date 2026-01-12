@@ -20,7 +20,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<BatchRuleExecution> BatchRuleExecutions { get; set; }
     public DbSet<Provider> Providers { get; set; }
     public DbSet<Course> Courses { get; set; }
-    public DbSet<CourseOffering> CourseOfferings { get; set; }
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
@@ -124,23 +123,12 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CourseCode).IsRequired().HasMaxLength(50);
             entity.Property(e => e.FeeAmount).HasPrecision(18, 2);
             entity.Property(e => e.PaymentType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TermName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
             
             entity.HasOne(e => e.Provider)
                 .WithMany(e => e.Courses)
                 .HasForeignKey(e => e.ProviderId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // Configure CourseOffering
-        modelBuilder.Entity<CourseOffering>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.TermName).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-            
-            entity.HasOne(e => e.Course)
-                .WithMany(e => e.CourseOfferings)
-                .HasForeignKey(e => e.CourseID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -150,9 +138,9 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
             
-            entity.HasOne(e => e.CourseOffering)
+            entity.HasOne(e => e.Course)
                 .WithMany(e => e.Enrollments)
-                .HasForeignKey(e => e.CourseOfferingId)
+                .HasForeignKey(e => e.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
             
             entity.HasOne(e => e.EducationAccount)
