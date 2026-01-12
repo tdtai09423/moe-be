@@ -1,0 +1,9 @@
+using MOE_System.EService.Application.DTOs;
+
+namespace MOE_System.EService.Application.Interfaces.Services
+{
+    public interface IAccountHolderService
+    {
+        Task<AccountHolderResponse> GetAccountHolderAsync(string accountHolderId);
+    }
+}

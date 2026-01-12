@@ -1,6 +1,6 @@
 namespace MOE_System.EService.Application.DTOs
 {
-    public class EducationAccountBalanceResponse
+    public class BalanceResponse
     {
         public string EducationAccountId { get; set; } = string.Empty;
         public string AccountHolderId { get; set; } = string.Empty;

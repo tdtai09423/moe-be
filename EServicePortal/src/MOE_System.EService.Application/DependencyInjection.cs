@@ -10,11 +10,11 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
-        
+
         // Register Application services
-        services.AddScoped<IAccountHolderEServiceService, AccountHolderEServiceService>();
-        services.AddScoped<IEducationAccountService, EducationAccountService>();
-        services.AddScoped<IEnrollmentService, EnrollmentService>();
+        //services.AddScoped<IAccountHolderService, AccountHolderService>();
+        //services.AddScoped<IEducationAccountService, EducationAccountService>();
+        //services.AddScoped<IEnrollmentService, EnrollmentService>();
 
         return services;
     }
