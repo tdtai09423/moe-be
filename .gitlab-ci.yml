@@ -17,9 +17,6 @@ variables:
   ADMIN_SOLUTION: "AdminPortal/MOE_System.sln"
   ESERVICE_SOLUTION: "EServicePortal/MOE_System.EService.sln"
 
-default:
-  tags:
-    - dind-test-EW
 
 # ==================== ADMIN PORTAL ====================
 
