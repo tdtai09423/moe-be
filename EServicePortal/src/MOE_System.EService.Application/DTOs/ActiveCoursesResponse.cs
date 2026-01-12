@@ -1,6 +1,6 @@
 namespace MOE_System.EService.Application.DTOs
 {
-    public class ActiveCourseForAccountResponse
+    public class ActiveCoursesResponse
     {
         public string EnrollmentId { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;

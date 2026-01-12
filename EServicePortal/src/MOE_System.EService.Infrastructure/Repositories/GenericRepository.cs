@@ -8,8 +8,8 @@ namespace MOE_System.EService.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        protected readonly ApplicationDbContext _context;
-        protected readonly DbSet<T> _dbSet;
+        private readonly ApplicationDbContext _context;
+        private readonly DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)
         {
@@ -33,6 +33,18 @@ namespace MOE_System.EService.Infrastructure.Repositories
         public T? Find(Expression<Func<T, bool>> predicate)
         {
             return _dbSet.FirstOrDefault(predicate);
+        }
+
+        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return query.FirstOrDefault(predicate);
         }
 
         public T? GetById(object id)

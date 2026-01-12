@@ -1,6 +1,6 @@
 namespace MOE_System.EService.Application.DTOs
 {
-    public class EducationAccountOutstandingFeeResponse
+    public class OutstandingFeeResponse
     {
         public string AccountHolderId { get; set; } = string.Empty;
         public decimal TotalOutstandingFee { get; set; }
