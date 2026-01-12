@@ -5,7 +5,12 @@ image: mcr.microsoft.com/dotnet/sdk:8.0
 stages:
   - build
   - test
+  - secret-detection
   - deploy
+
+# Include GitLab Security Templates
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
 
 # Environment variables
 variables:
