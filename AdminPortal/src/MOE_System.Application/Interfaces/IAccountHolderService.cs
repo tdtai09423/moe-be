@@ -8,7 +8,7 @@ namespace MOE_System.Application.Interfaces;
 
 public interface IAccountHolderService
 {
-    Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20);
+    Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null);
     Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId);
     Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request);
 }

@@ -100,11 +100,71 @@ public class AccountHolderService : IAccountHolderService
         return accountHolderDetailResponse;
     }
 
-    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20)
+    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null)
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
         
-        var query = accountHolderRepo.Entities;
+        var query = accountHolderRepo.Entities.AsQueryable();
+
+        if (filters != null)
+        {
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var s = filters.Search.Trim().ToLower();
+                query = query.Where(ah => (ah.FirstName + " " + ah.LastName).ToLower().Contains(s)
+                                           || ah.NRIC.ToLower().Contains(s)
+                                           || ah.Email.ToLower().Contains(s)
+                                           || ah.ContactNumber.ToLower().Contains(s));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.EducationLevel))
+            {
+                var el = filters.EducationLevel.Trim().ToLower();
+                query = query.Where(ah => ah.EducationLevel != null && ah.EducationLevel.ToLower() == el);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+            {
+                var ss = filters.SchoolingStatus.Trim().ToLower();
+                query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+            }
+
+            /* if (!string.IsNullOrWhiteSpace(filters.ResidentialStatus))
+             {
+                 var rs = filters.ResidentialStatus.Trim().ToLower();
+                 query = query.Where(ah => ah.ResidentialStatus != null && ah.ResidentialStatus.ToLower() == rs);
+             }*/ // Assuming implementation later
+
+            if (filters.MinBlance.HasValue)
+            {
+                var min = filters.MinBlance.Value;
+                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
+            }
+
+            if (filters.MaxBlance.HasValue)
+            {
+                var max = filters.MaxBlance.Value;
+                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
+            }
+
+            if (filters.MinAge.HasValue || filters.MaxAge.HasValue)
+            {
+                var today = DateTime.Today;
+
+                if (filters.MinAge.HasValue)
+                {
+                    var maxDob = today.AddYears(-filters.MinAge.Value);
+                    query = query.Where(ah => ah.DateOfBirth <= maxDob);
+                }
+
+                if (filters.MaxAge.HasValue)
+                {
+                    var minDob = today.AddYears(-filters.MaxAge.Value);
+                    query = query.Where(ah => ah.DateOfBirth >= minDob);
+                }
+            }
+        }
+
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
         
         var accountHolderResponses = paginatedAccountHolders.Items.Select(accountHolder => new AccountHolderResponse
@@ -117,7 +177,6 @@ public class AccountHolderService : IAccountHolderService
             EducationLevel = accountHolder.EducationLevel,
             CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
-        
         }).ToList();
 
         return new PaginatedList<AccountHolderResponse>(
