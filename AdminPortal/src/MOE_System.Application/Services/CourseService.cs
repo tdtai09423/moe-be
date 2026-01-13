@@ -4,6 +4,7 @@ using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.DTOs.Course.Request;
 using MOE_System.Application.DTOs.Course.Response;
 using MOE_System.Application.Interfaces.Services;
+using MOE_System.Domain.Common;
 using MOE_System.Domain.Entities;
 
 namespace MOE_System.Application.Services;
@@ -46,5 +47,52 @@ public class CourseService : ICourseService
         )).ToList();
 
         return new PaginatedList<CourseListResponse>(reponseItems, pagedCourses.TotalCount, pagedCourses.PageIndex, pagedCourses.TotalPages);
+    }
+
+    public async Task<CourseDetailResponse?> GetCourseDetailAsync(string courseCode, CancellationToken cancellationToken = default)
+    {
+        var courseRepo = _unitOfWork.GetRepository<Course>();
+
+        var course = await courseRepo.FirstOrDefaultAsync(
+            predicate: c => c.CourseCode == courseCode,
+            include: q => q
+                .Include(c => c.Provider)
+                .Include(c => c.Enrollments)
+                    .ThenInclude(e => e.EducationAccount)
+                .Include(c => c.Enrollments)
+                    .ThenInclude(e => e.Invoices)
+                        .ThenInclude(i => i.Transactions),
+            cancellationToken: cancellationToken
+        );
+
+        if (course == null)
+        {
+            throw new BaseException.NotFoundException($"Course with code '{courseCode}' not found.");
+        }
+
+        return new CourseDetailResponse(
+            course.CourseCode,
+            course.CourseName,
+            course.Provider?.Name ?? string.Empty,
+            null!,
+            course.Status,
+            course.StartDate,
+            course.EndDate, 
+            course.PaymentType,
+            course.PaymentType == "Recurring" ? course.BillingCycle : null,
+            course.FeeAmount,
+            course.Enrollments!.OrderByDescending(e => e.EnrollDate).Select(e =>
+            {
+                var totalPaid = e.Invoices?.SelectMany(i => i.Transactions ?? Enumerable.Empty<Transaction>()).Sum(t => t.Amount) ?? 0m;
+
+                return new EnrolledStudent(
+                    e.EducationAccount?.Id ?? string.Empty,
+                    e.EducationAccount?.UserName ?? string.Empty,
+                    totalPaid,
+                    course.FeeAmount - totalPaid,
+                    e.EnrollDate
+                );
+            }).ToList()
+        );
     }
 }

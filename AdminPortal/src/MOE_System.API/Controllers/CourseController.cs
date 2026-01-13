@@ -21,4 +21,11 @@ public class CourseController : ControllerBase
         var courses = await _courseService.GetCoursesAsync(request, cancellationToken);
         return Ok(courses);
     }
+
+    [HttpGet("{courseCode}")]
+    public async Task<IActionResult> GetCourseDetail(string courseCode, CancellationToken cancellationToken)
+    {
+        var courseDetail = await _courseService.GetCourseDetailAsync(courseCode, cancellationToken);
+        return Ok(courseDetail);
+    }
 }

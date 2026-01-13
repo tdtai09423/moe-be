@@ -106,5 +106,17 @@ namespace MOE_System.Infrastructure.Repositories
 
             return await query.SumAsync(selector, cancellationToken);
         }
+
+        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return query.FirstOrDefaultAsync(predicate, cancellationToken);
+        }
     }
 }
