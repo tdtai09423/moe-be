@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\MOE_System.Domain\MOE_System.Domain.csproj" />
+    <ProjectReference Include="..\MOE_System.EService.Domain\MOE_System.EService.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,11 +1,11 @@
 using MOE_System.EService.Application.DTOs;
 using MOE_System.EService.Application.Interfaces.Services;
 using MOE_System.EService.Application.Interfaces;
-using static MOE_System.Domain.Common.BaseException;
+using static MOE_System.EService.Domain.Common.BaseException;
 using MOE_System.EService.Application.Common.Interfaces;
-using MOE_System.Domain.Entities;
+using MOE_System.EService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 
 namespace MOE_System.EService.Application.Services
 {
@@ -50,6 +50,35 @@ namespace MOE_System.EService.Application.Services
             };
 
             return accountHolderResponse;
+        }
+
+        public async Task<AccountHolderProfileResponse> GetMyProfileAsync(string accountHolderId)
+        {
+            var repo = _unitOfWork.GetRepository<AccountHolder>();
+
+            var accountHolder = await repo.FindAsync(
+                x => x.Id.ToLower() == accountHolderId.ToLower(),
+                q => q.Include(x => x.EducationAccount)
+            );
+
+            if (accountHolder == null)
+            {
+                throw new BaseException.NotFoundException("Account holder not found!");
+            }
+
+            return new AccountHolderProfileResponse
+            {
+                FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
+                NRIC = accountHolder.NRIC,
+                DateOfBirth = accountHolder.DateOfBirth,
+                AccountCreated = accountHolder.EducationAccount?.CreatedAt ?? accountHolder.CreatedAt,
+                SchoolingStatus = accountHolder.SchoolingStatus,
+                EducationLevel = accountHolder.EducationLevel,
+                EmailAddress = accountHolder.Email,
+                PhoneNumber = accountHolder.ContactNumber,
+                RegisteredAddress = accountHolder.RegisteredAddress,
+                MailingAddress = accountHolder.MailingAddress
+            };
         }
     }
 }
