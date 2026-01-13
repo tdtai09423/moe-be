@@ -6,16 +6,11 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
     public class CreateAccountHolderRequest : IValidatableObject
     {
         [Required(ErrorMessage = "NRIC is required.")]
-        [StringLength(50, MinimumLength = 9, ErrorMessage = "NRIC must be between 9 and 50 characters.")]
         public required string NRIC { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "First name is required.")]
+        [Required(ErrorMessage = "Full name is required.")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters.")]
-        public required string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Last name is required.")]
-        [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters.")]
-        public required string LastName { get; set; } = string.Empty;
+        public required string FullName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Date of birth is required.")]
         public required DateTime DateOfBirth { get; set; } = default;
@@ -29,15 +24,53 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         [Phone(ErrorMessage = "Invalid phone number format.")]
         public required string ContactNumber { get; set; }
 
+        public string EducationLevel { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Registered address is required.")]
+        public required string RegisteredAddress { get; set; }
+
+        public string MailingAddress { get; set; } = string.Empty;
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (!string.IsNullOrWhiteSpace(NRIC))
             {
-                var nricPattern = @"^[STFGM]\d{7}[A-Z]$";
+                var nricPattern = @"^[STM]\d{7}[A-Z]$";
                 if (!Regex.IsMatch(NRIC.ToUpper(), nricPattern))
                 {
                     yield return new ValidationResult(
                         "NRIC must be in valid Singapore format (e.g., S1234567A).",
+                        new[] { nameof(NRIC) });
+                }
+
+                if(NRIC.Length != 9)
+                {
+                    yield return new ValidationResult(
+                        "NRIC must be exactly 9 characters long.",
+                        new[] { nameof(NRIC) });
+                }
+
+                if (DateOfBirth.Year < 2000 && (NRIC.ToUpper().StartsWith("T") || NRIC.ToUpper().StartsWith("M")))
+                {
+                    yield return new ValidationResult(
+                        "NRIC starting with 'T' or 'M' is only for individuals born in or after the year 2000.",
+                        new[] { nameof(NRIC), nameof(DateOfBirth) });
+                }
+
+                if (DateOfBirth.Year >= 2000 && NRIC.ToUpper().StartsWith("S"))
+                {
+                    yield return new ValidationResult(
+                        "NRIC starting with 'S' is only for individuals born before the year 2000.",
+                        new[] { nameof(NRIC), nameof(DateOfBirth) });
+                }
+
+                string lastTwoDigitsOfBirthYear = (DateOfBirth.Year % 100).ToString("D2");
+                var match = Regex.Match(NRIC, @"\d{2}");
+
+                if (!match.Success)
+                {
+                    yield return new ValidationResult(
+                        "NRIC format is invalid.",
                         new[] { nameof(NRIC) });
                 }
             }
@@ -63,27 +96,6 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
                 yield return new ValidationResult(
                     "Date of birth is invalid.",
                     new[] { nameof(DateOfBirth) });
-            }
-
-            // Validate FirstName and LastName don't contain numbers or special characters
-            if (!string.IsNullOrWhiteSpace(FirstName))
-            {
-                if (!Regex.IsMatch(FirstName, @"^[a-zA-Z\s\-']+$"))
-                {
-                    yield return new ValidationResult(
-                        "First name can only contain letters, spaces, hyphens, and apostrophes.",
-                        new[] { nameof(FirstName) });
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(LastName))
-            {
-                if (!Regex.IsMatch(LastName, @"^[a-zA-Z\s\-']+$"))
-                {
-                    yield return new ValidationResult(
-                        "Last name can only contain letters, spaces, hyphens, and apostrophes.",
-                        new[] { nameof(LastName) });
-                }
             }
 
             // Validate ContactNumber format (Singapore format: 8 digits starting with 6, 8, or 9)

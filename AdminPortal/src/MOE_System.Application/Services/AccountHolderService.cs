@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.DTOs;
-using MOE_System.Application.Interfaces;
-using MOE_System.Application.Common;
-using MOE_System.Domain.Entities;
-using static MOE_System.Domain.Common.BaseException;
 using MOE_System.Application.DTOs.AccountHolder;
 using MOE_System.Application.DTOs.AccountHolder.Request;
 using MOE_System.Application.DTOs.AccountHolder.Response;
+using MOE_System.Application.Interfaces;
+using MOE_System.Domain.Entities;
+using MOE_System.Domain.Enums;
+using System.Text.RegularExpressions;
+using static MOE_System.Domain.Common.BaseException;
 
 namespace MOE_System.Application.Services;
 
@@ -20,6 +22,26 @@ public class AccountHolderService : IAccountHolderService
     {
         _unitOfWork = unitOfWork;
         _passwordService = passwordService;
+    }
+
+    public async Task<ResidentInfoResponse> GetResidentAccountHolderByNRICAsync(string nric)
+    {
+        var residentRepo = _unitOfWork.GetRepository<Resident>();
+        
+        var resident = await residentRepo.Entities
+            .FirstOrDefaultAsync(ah => ah.NRIC == nric);
+        if(resident == null)
+        {
+            throw new NotFoundException("RESIDENT_NOT_FOUND", $"Account holder with NRIC {nric} not found.");
+        }
+        return new ResidentInfoResponse
+        {
+            FullName = resident.PrincipalName,
+            DateOfBirth = resident.DateOfBirth,
+            Email = resident.EmailAddress,
+            PhoneNumber = resident.MobileNumber,
+            RegisteredAddress = resident.RegisteredAddress
+        };
     }
 
     public async Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId)
@@ -144,16 +166,31 @@ public class AccountHolderService : IAccountHolderService
                 throw new ValidationException("ACCOUNT_HOLDER_EXISTS", $"Account holder with NRIC {request.NRIC} already exists.");
             }
 
+            string pattern = @"^([^\s]+)\s+(.*)$";
+            Match match = Regex.Match(request.FullName, pattern);
+
+            string firstName = string.Empty;
+            string lastName = string.Empty;
+
+            if (match.Success)
+            {
+                firstName = match.Groups[1].Value;
+                lastName = match.Groups[2].Value;
+            }
+
             // Create Account Holder
             var newAccountHolder = new AccountHolder
             {
                 NRIC = request.NRIC,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                FirstName = firstName,
+                LastName = lastName,
                 DateOfBirth = request.DateOfBirth,
                 Email = request.Email,
                 ContactNumber = request.ContactNumber,
-                SchoolingStatus = "Not in School",
+                EducationLevel = request.EducationLevel,
+                RegisteredAddress = request.RegisteredAddress,
+                MailingAddress = request.MailingAddress,
+                SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
                 CreatedAt = DateTime.UtcNow,
             };
             
@@ -175,7 +212,7 @@ public class AccountHolderService : IAccountHolderService
             await _unitOfWork.SaveAsync();
             
             await transaction.CommitAsync();
-            
+
             return new AccountHolderResponse
             {
                 Id = newAccountHolder.Id,
@@ -198,4 +235,5 @@ public class AccountHolderService : IAccountHolderService
             await transaction.DisposeAsync();
         }
     }
+
 }
