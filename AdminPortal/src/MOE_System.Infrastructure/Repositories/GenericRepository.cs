@@ -99,7 +99,8 @@ namespace MOE_System.Infrastructure.Repositories
             Expression<Func<T, bool>>? predicate = null,
             Func<IQueryable<T>, IQueryable<T>>? include = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-            int take = 0
+            int take = 0,
+            CancellationToken cancellationToken = default
         )
         {
             IQueryable<T> query = _dbSet;
@@ -122,7 +123,7 @@ namespace MOE_System.Infrastructure.Repositories
             {
                 query = query.Take(take);
             }
-            return query.ToListAsync();
+            return query.ToListAsync(cancellationToken);
         }
     }
 }

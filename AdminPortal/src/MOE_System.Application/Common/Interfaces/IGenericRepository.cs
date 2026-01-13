@@ -34,7 +34,8 @@ namespace MOE_System.Application.Common.Interfaces
             Expression<Func<T, bool>>? predicate = null,
             Func<IQueryable<T>, IQueryable<T>>? include = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-            int take = 0
+            int take = 0,
+            CancellationToken cancellationToken = default
         );
     }
 }

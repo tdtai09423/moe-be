@@ -5,7 +5,7 @@ using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Common.Dashboard;
 using Microsoft.EntityFrameworkCore;
 
-namespace MOE_System.Application.Services.Dashboard;
+namespace MOE_System.Application.Services;
 
 public class DashboardService : IDashboardService
 {
@@ -40,7 +40,8 @@ public class DashboardService : IDashboardService
                 .Include(y => y.BatchExecution)
                 .Include(z => z.TopupRule),
             orderBy: x => x.OrderBy(y => y.BatchExecution!.ScheduledTime),
-            take: 5
+            take: 5,
+            cancellationToken: cancellationToken
         );
 
         return results.Select(x => new ScheduledTopUpResponse(
@@ -68,7 +69,8 @@ public class DashboardService : IDashboardService
         var results = await educationAccountRepository.ToListAsync(
             include: x => x.Include(x => x.AccountHolder),
             orderBy: x => x.OrderByDescending(y => y.CreatedAt),
-            take: 10
+            take: 10,
+            cancellationToken: cancellationToken
         );
 
         return results.Select(x => new RecentActivityResponse(
@@ -90,7 +92,8 @@ public class DashboardService : IDashboardService
                 .Include(x => x.EducationAccount!)
                     .ThenInclude(y => y.AccountHolder),
             orderBy: x => x.OrderByDescending(y => y.EnrollDate),
-            take: 10
+            take: 10,
+            cancellationToken: cancellationToken
         );
 
         return results.Select(x => new RecentActivityResponse(
