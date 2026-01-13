@@ -58,16 +58,11 @@ deploy_admin_to_azure:
     - echo "Logging in to Azure..."
     - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
     
-    - echo "Installing zip utility..."
-    - (apk add zip || yum install -y zip || apt-get update && apt-get install -y zip)
-    
-    - echo "Zipping content..."
-    - cd admin_publish
-    - zip -r ../deploy.zip .
-    - cd ..
+    - echo "Creating tarball package..."
+    - tar -czf deploy.tar.gz -C admin_publish .
     
     - echo "Deploying to Azure Web App..."
-    - az webapp deploy --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src-path deploy.zip --type zip
+    - az webapp deploy --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src-path deploy.tar.gz --type static
     
   when: manual
   only:
