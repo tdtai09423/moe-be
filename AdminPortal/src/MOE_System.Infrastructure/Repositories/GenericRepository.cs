@@ -95,16 +95,31 @@ namespace MOE_System.Infrastructure.Repositories
             await _dbSet.AddRangeAsync(obj);
         }
 
-        public async Task<decimal> SumAsync(Expression<Func<T, bool>>? predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<T>> ToListAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            int take = 0
+        )
         {
-            IQueryable<T> query = _dbSet.AsNoTracking();
-
+            IQueryable<T> query = _dbSet;
             if (predicate != null)
             {
                 query = query.Where(predicate);
             }
-
-            return await query.SumAsync(selector, cancellationToken);
+            if (include != null)
+            {
+                query = include(query);
+            }
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+            if (take > 0)
+            {
+                query = query.Take(take);
+            }
+            return await query.ToListAsync();
         }
     }
 }

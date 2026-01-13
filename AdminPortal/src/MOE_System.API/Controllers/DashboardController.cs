@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MOE_System.Application.DTOs.Dashboard.Request;
+using MOE_System.Application.Common.Dashboard;
 using MOE_System.Application.DTOs.Dashboard.Response;
 using MOE_System.Application.Interfaces.Services;
 
@@ -16,18 +16,10 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("overview")]
-    public async Task<ActionResult<DashboardOverviewResponse>> GetDashboardOverview(
-        [FromQuery] DashboardOverviewRequest request,
-        CancellationToken cancellationToken = default)
+    [HttpGet("scheduled-topups")]
+    public async Task<ActionResult<IReadOnlyList<ScheduledTopUpResponse>>> GetScheduledTopUpsAsync([FromQuery] ScheduledTopUpTypes type, CancellationToken cancellationToken)
     {
-        var overview = await _dashboardService.GetDashboardOverviewAsync(
-            request.DateRangeType,
-            request.From,
-            request.To,
-            cancellationToken
-        );
-            
-        return Ok(overview);
+        var result = await _dashboardService.GetTopUpTypesAsync(type, cancellationToken);
+        return Ok(result);
     }
 }

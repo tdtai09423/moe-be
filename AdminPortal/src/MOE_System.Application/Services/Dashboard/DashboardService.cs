@@ -3,6 +3,7 @@ using MOE_System.Application.Interfaces.Services;
 using MOE_System.Domain.Entities;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Common.Dashboard;
+using Microsoft.EntityFrameworkCore;
 
 namespace MOE_System.Application.Services.Dashboard;
 
@@ -15,57 +16,38 @@ public class DashboardService : IDashboardService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<DashboardOverviewResponse> GetDashboardOverviewAsync(
-        DateRangeType dateRangeType,
-        DateOnly? from,
-        DateOnly? to,
-        CancellationToken cancellationToken = default
-    )
+    public Task<IReadOnlyList<ScheduledTopUpResponse>> GetTopUpTypesAsync(ScheduledTopUpTypes type, CancellationToken cancellationToken)
     {
-        var nowUtc = DateTime.UtcNow;
+        return type switch 
+        { 
+            ScheduledTopUpTypes.Batch => GetBatchScheduledTopUpAsync(cancellationToken),
+            _ => throw new NotImplementedException($"The scheduled top-up type '{type}' is not implemented.")
+        };
+    }
 
-        var dateRange = DateRangeResolver.Resolve(
-            dateRangeType,
-            nowUtc,
-            from,
-            to
-        );
+    private async Task<IReadOnlyList<ScheduledTopUpResponse>> GetBatchScheduledTopUpAsync(CancellationToken cancellationToken)
+    {
+        var batchRuleRepository = _unitOfWork.GetRepository<BatchRuleExecution>();
 
-        var hocRepo = _unitOfWork.GetRepository<HistoryOfChange>();
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var invoiceRepo = _unitOfWork.GetRepository<Invoice>();
-        
-        var totalDisbursed = await hocRepo.SumAsync(
-            predicate: dateRange is null
-                ? h => h.Type == "Top-Up"
-                : h => h.Type == "Top-Up" &&
-                       h.CreatedAt >= dateRange.StartDate &&
-                       h.CreatedAt < dateRange.EndDate,
-            selector: h => h.Amount,
-            cancellationToken: cancellationToken
-        );
+        var now = DateTime.UtcNow;
 
-        var totalCollected = await transactionRepo.SumAsync(
-            predicate: dateRange is null
-                ? t => t.Status == "Completed"
-                : t => t.Status == "Completed" &&
-                       t.TransactionAt >= dateRange.StartDate &&
-                       t.TransactionAt < dateRange.EndDate,
-            selector: t => t.Amount,
-            cancellationToken: cancellationToken
+        var results = await batchRuleRepository.ToListAsync(
+            predicate: x => 
+                x.BatchExecution != null &&
+                x.BatchExecution.Status == "Scheduled" && 
+                x.BatchExecution.ScheduledTime >= now,
+            include: x => x
+                .Include(y => y.BatchExecution)
+                .Include(z => z.TopupRule),
+            orderBy: x => x.OrderBy(y => y.BatchExecution!.ScheduledTime),
+            take: 5
         );
 
-        var outstandingPayments = await invoiceRepo.SumAsync(
-            predicate: i => i.Status == "Unpaid",
-            selector: i => i.Amount,
-            cancellationToken: cancellationToken
-        );
-        
-        return new DashboardOverviewResponse(
-            totalDisbursed, 
-            totalCollected, 
-            outstandingPayments,
-            nowUtc
-        );
+        return results.Select(x => new ScheduledTopUpResponse(
+            x.TopupRule!.RuleName,
+            x.TopupRule!.TopupAmount,
+            x.BatchExecution!.ScheduledTime,
+            x.BatchExecution!.Status
+        )).ToList();
     }
 }
