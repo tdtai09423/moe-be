@@ -1,21 +1,19 @@
-# Use .NET 8.0 SDK
 image: mcr.microsoft.com/dotnet/sdk:10.0
 
-# Define Pipeline stages
+variables:
+  ADMIN_SOLUTION: "AdminPortal/MOE_System.sln"
+  ESERVICE_SOLUTION: "EServicePortal/MOE_System.EService.sln"
+  AZURE_APP_NAME: "moe-admin"
+  RESOURCE_GROUP: "moe-system-test"
+
 stages:
   - build
   - test
   - secret-detection
   - deploy
 
-# Include GitLab Security Templates
 include:
   - template: Security/Secret-Detection.gitlab-ci.yml
-
-# Environment variables
-variables:
-  ADMIN_SOLUTION: "AdminPortal/MOE_System.sln"
-  ESERVICE_SOLUTION: "EServicePortal/MOE_System.EService.sln"
 
 default:
   tags:
@@ -23,111 +21,50 @@ default:
 
 # ==================== ADMIN PORTAL ====================
 
-# Build Admin Portal
 build_admin:
   stage: build
   script:
-    - echo "Restoring NuGet packages for Admin Portal..."
+    - echo "Restoring and Publishing Admin Portal..."
     - dotnet restore $ADMIN_SOLUTION
-    - echo "Building Admin Portal..."
-    - dotnet build $ADMIN_SOLUTION --configuration Release --no-restore
+    - dotnet publish AdminPortal/src/MOE_System.API/MOE_System.API.csproj -c Release -o ./admin_publish
   artifacts:
     paths:
-      - AdminPortal/src/MOE_System.API/bin/
-      - AdminPortal/src/MOE_System.API/obj/
+      - ./admin_publish/
     expire_in: 1 hour
-
-# Unit Test Admin Portal
-# test_admin:
-#   stage: test
-#   dependencies:
-#     - build_admin
-#   script:
-#     - echo "Running Unit Tests for Admin Portal..."
-#     - dotnet test AdminPortal/MOE_System.Admin.UnitTest/MOE_System.Admin.UnitTest.csproj --no-restore --verbosity normal
-#     - dotnet test AdminPortal/tests/MOE_System.Application.Tests.csproj --no-restore --verbosity normal
-#   allow_failure: false
-
-# Publish Admin Portal
-publish_admin:
-  stage: deploy
-  dependencies:
-    - build_admin
-  only:
-    - main
-  script:
-    - echo "Publishing Admin Portal..."
-    - dotnet publish AdminPortal/src/MOE_System.API/MOE_System.API.csproj -c Release -o ./publish/admin
-  artifacts:
-    paths:
-      - ./publish/admin
-    expire_in: 1 week
 
 # ==================== ESERVICE PORTAL ====================
 
-# Build EService Portal
 build_eservice:
   stage: build
   script:
-    - echo "Restoring NuGet packages for EService Portal..."
+    - echo "Restoring and Publishing EService Portal..."
     - dotnet restore $ESERVICE_SOLUTION
-    - echo "Building EService Portal..."
-    - dotnet build $ESERVICE_SOLUTION --configuration Release --no-restore
+    - dotnet publish EServicePortal/src/MOE_System.EService.API/MOE_System.EService.API.csproj -c Release -o ./eservice_publish
   artifacts:
     paths:
-      - EServicePortal/src/MOE_System.EService.API/bin/
-      - EServicePortal/src/MOE_System.EService.API/obj/
+      - ./eservice_publish/
     expire_in: 1 hour
 
-# Unit Test EService Portal
-# test_eservice:
-#   stage: test
-#   dependencies:
-#     - build_eservice
-#   script:
-#     - echo "Running Unit Tests for EService Portal..."
-#     - dotnet test EServicePortal/MOE_System.EService.UnitTest/MOE_System.EService.UnitTest.csproj --no-restore --verbosity normal
-#     - dotnet test EServicePortal/tests/MOE_System.EService.Application.Tests.csproj --no-restore --verbosity normal
-#   allow_failure: false
+# ==================== DEPLOY TO AZURE ====================
 
-# Publish EService Portal
-publish_eservice:
+deploy_admin_to_azure:
   stage: deploy
+  image: mcr.microsoft.com/azure-cli
   dependencies:
-    - build_eservice
+    - build_admin
+  environment:
+    name: production/admin
+    url: https://$AZURE_APP_NAME.azurewebsites.net
+  script:
+    - echo "Logging in to Azure..."
+    - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+    
+    - echo "Zipping content..."
+    - apt-get update && apt-get install -y zip
+    - cd admin_publish && zip -r ../deploy.zip . && cd ..
+    
+    - echo "Deploying to Azure Web App..."
+    - az webapp deployment source config-zip --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src deploy.zip
   only:
     - main
-  script:
-    - echo "Publishing EService Portal..."
-    - dotnet publish EServicePortal/src/MOE_System.EService.API/MOE_System.EService.API.csproj -c Release -o ./publish/eservice
-  artifacts:
-    paths:
-      - ./publish/eservice
-    expire_in: 1 week
-
-# ==================== DEPLOY (Optional) ====================
-
-# Deploy to Development Environment (uncomment if needed)
-# deploy_dev:
-#   stage: deploy
-#   dependencies:
-#     - publish_admin
-#     - publish_eservice
-#   only:
-#     - develop
-#   script:
-#     - echo "Deploying to Development environment..."
-#     # Add your deployment commands here (e.g.: scp, rsync, docker, kubernetes, etc.)
-
-# Deploy to Production Environment
-# deploy_production:
-#   stage: deploy
-#   dependencies:
-#     - publish_admin
-#     - publish_eservice
-#   only:
-#     - main
-#   when: manual  # Require manual confirmation before deploying to production
-#   script:
-#     - echo "Deploying to Production environment..."
-#     # Add your deployment commands here
+  when: manual
