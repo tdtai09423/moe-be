@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MOE_System.Application.DTOs;
 using MOE_System.Application.Interfaces;
 using MOE_System.Application.Common;
+using MOE_System.Application.DTOs.AccountHolder.Request;
+using MOE_System.Application.DTOs.AccountHolder.Response;
 
-namespace MOE_System.API.Controllers.Admin
+namespace MOE_System.API.Controllers
 {
     [Route("api/v1/admin/account-holders")]
     public class AccountHolderController : BaseApiController

@@ -15,7 +15,6 @@ public static class DependencyInjection
         
         // Register Application services
         services.AddScoped<IAccountHolderService, AccountHolderService>();
-        services.AddScoped<IEducationAccountService, EducationAccountService>();
         services.AddScoped<IDashboardService, DashboardService>();
         
         return services;
