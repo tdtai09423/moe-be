@@ -17,9 +17,16 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("scheduled-topups")]
-    public async Task<ActionResult<IReadOnlyList<ScheduledTopUpResponse>>> GetScheduledTopUpsAsync([FromQuery] ScheduledTopUpTypes type, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<ScheduledTopUpResponse>>> GetScheduledTopUpsAsync(CancellationToken cancellationToken, [FromQuery] ScheduledTopUpTypes type = ScheduledTopUpTypes.Batch)
     {
         var result = await _dashboardService.GetTopUpTypesAsync(type, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("recent-activities")]
+    public async Task<ActionResult<IReadOnlyList<RecentActivityResponse>>> GetRecentActivitiesAsync(CancellationToken cancellationToken, [FromQuery] RecentActivityTypes type = RecentActivityTypes.Enrollments)
+    {
+        var result = await _dashboardService.GetRecentActivitiesAsync(type, cancellationToken);
         return Ok(result);
     }
 }

@@ -95,7 +95,7 @@ namespace MOE_System.Infrastructure.Repositories
             await _dbSet.AddRangeAsync(obj);
         }
 
-        public async Task<IReadOnlyList<T>> ToListAsync(
+        public Task<List<T>> ToListAsync(
             Expression<Func<T, bool>>? predicate = null,
             Func<IQueryable<T>, IQueryable<T>>? include = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
@@ -103,23 +103,26 @@ namespace MOE_System.Infrastructure.Repositories
         )
         {
             IQueryable<T> query = _dbSet;
-            if (predicate != null)
-            {
-                query = query.Where(predicate);
-            }
             if (include != null)
             {
                 query = include(query);
             }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
             if (orderBy != null)
             {
                 query = orderBy(query);
             }
+
             if (take > 0)
             {
                 query = query.Take(take);
             }
-            return await query.ToListAsync();
+            return query.ToListAsync();
         }
     }
 }

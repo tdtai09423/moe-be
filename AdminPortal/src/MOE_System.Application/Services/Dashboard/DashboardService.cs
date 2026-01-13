@@ -50,4 +50,55 @@ public class DashboardService : IDashboardService
             x.BatchExecution!.Status
         )).ToList();
     }
+
+    public Task<IReadOnlyList<RecentActivityResponse>> GetRecentActivitiesAsync(RecentActivityTypes type, CancellationToken cancellationToken)
+    {
+        return type switch 
+        { 
+            RecentActivityTypes.Accounts => GetLatestAccountAsync(cancellationToken),
+            RecentActivityTypes.Enrollments => GetLatestEnrollmentsAsync(cancellationToken),
+            _ => throw new NotImplementedException($"The recent activity type '{type}' is not implemented.")
+        };
+    }
+
+    private async Task<IReadOnlyList<RecentActivityResponse>> GetLatestAccountAsync(CancellationToken cancellationToken)
+    {
+        var educationAccountRepository = _unitOfWork.GetRepository<EducationAccount>();
+
+        var results = await educationAccountRepository.ToListAsync(
+            include: x => x.Include(x => x.AccountHolder),
+            orderBy: x => x.OrderByDescending(y => y.CreatedAt),
+            take: 10
+        );
+
+        return results.Select(x => new RecentActivityResponse(
+            null,
+            null,
+            x.AccountHolder?.FullName,
+            x.AccountHolder?.Email,
+            x.CreatedAt
+        )).ToList();
+    }
+
+    private async Task<IReadOnlyList<RecentActivityResponse>> GetLatestEnrollmentsAsync(CancellationToken cancellationToken)
+    {
+        var enrollmentRepository = _unitOfWork.GetRepository<Enrollment>();
+
+        var results = await enrollmentRepository.ToListAsync(
+            include: x => x
+                .Include(x => x.Course)
+                .Include(x => x.EducationAccount!)
+                    .ThenInclude(y => y.AccountHolder),
+            orderBy: x => x.OrderByDescending(y => y.EnrollDate),
+            take: 10
+        );
+
+        return results.Select(x => new RecentActivityResponse(
+            x.EducationAccount?.AccountHolder?.FullName,
+            x.Course?.CourseName,
+            null,
+            null,
+            x.EnrollDate
+        )).ToList();
+    }
 }
