@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\MOE_System.EService.Application\MOE_System.EService.Application.csproj" />
-    <ProjectReference Include="..\src\MOE_System.Domain\MOE_System.Domain.csproj" />
+    <ProjectReference Include="..\src\MOE_System.EService.Domain\MOE_System.EService.Domain.csproj" />
     <ProjectReference Include="..\src\MOE_System.EService.Infrastructure\MOE_System.EService.Infrastructure.csproj" />
   </ItemGroup>
 
