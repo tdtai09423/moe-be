@@ -5,6 +5,9 @@ using MOE_System.Application.Interfaces;
 using MOE_System.Application.Common;
 using MOE_System.Domain.Entities;
 using static MOE_System.Domain.Common.BaseException;
+using MOE_System.Application.DTOs.AccountHolder;
+using MOE_System.Application.DTOs.AccountHolder.Request;
+using MOE_System.Application.DTOs.AccountHolder.Response;
 
 namespace MOE_System.Application.Services;
 
@@ -17,77 +20,6 @@ public class AccountHolderService : IAccountHolderService
     {
         _unitOfWork = unitOfWork;
         _passwordService = passwordService;
-    }
-
-    public async Task<AccountHolderDto?> GetAccountHolderByIdAsync(string accountHolderId)
-    {
-        var accountHolder = await _unitOfWork.GetRepository<AccountHolder>()
-            .Entities
-            .Include(ah => ah.EducationAccount)
-            .Where(ah => ah.Id == accountHolderId && ah.DeletedAt == null)
-            .Select(ah => new AccountHolderDto
-            {
-                Id = ah.Id,
-                FirstName = ah.FirstName,
-                LastName = ah.LastName,
-                DateOfBirth = ah.DateOfBirth,
-                Address = ah.Address,
-                Email = ah.Email,
-                ContactNumber = ah.ContactNumber,
-                NRIC = ah.NRIC,
-                CitizenId = ah.CitizenId,
-                Gender = ah.Gender,
-                ContLearningStatus = ah.ContLearningStatus,
-                EducationLevel = ah.EducationLevel,
-                SchoolingStatus = ah.SchoolingStatus,
-                EducationAccount = ah.EducationAccount != null ? new EducationAccountInfoDto
-                {
-                    Id = ah.EducationAccount.Id,
-                    UserName = ah.EducationAccount.UserName,
-                    Balance = ah.EducationAccount.Balance,
-                    IsActive = ah.EducationAccount.IsActive,
-                    LastLoginAt = ah.EducationAccount.LastLoginAt
-                } : null
-            })
-            .FirstOrDefaultAsync();
-
-        return accountHolder;
-    }
-
-    public async Task<List<ActiveCourseDto>> GetActiveCoursesAsync(string accountHolderId)
-    {
-        var accountHolder = await _unitOfWork.GetRepository<AccountHolder>()
-            .Entities
-            .Include(ah => ah.EducationAccount)
-            .Where(ah => ah.Id == accountHolderId && ah.DeletedAt == null)
-            .FirstOrDefaultAsync();
-
-        if (accountHolder?.EducationAccount == null)
-        {
-            return new List<ActiveCourseDto>();
-        }
-
-        var activeCourses = await _unitOfWork.GetRepository<Enrollment>()
-            .Entities
-            .Include(e => e.Course)
-                .ThenInclude(c => c!.Provider)
-            .Where(e => e.EducationAccountId == accountHolder.EducationAccount.Id 
-                        && e.Status == "Active")
-            .Select(e => new ActiveCourseDto
-            {
-                CourseId = e.Course!.Id,
-                CourseName = e.Course!.CourseName,
-                CourseCode = e.Course!.CourseCode,
-                ProviderName = e.Course!.Provider!.Name,
-                TermName = e.Course!.TermName,
-                StartDate = e.Course!.StartDate,
-                EndDate = e.Course!.EndDate,
-                EnrollDate = e.EnrollDate,
-                EnrollmentStatus = e.Status
-            })
-            .ToListAsync();
-
-        return activeCourses;
     }
 
     public async Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId)
@@ -183,11 +115,9 @@ public class AccountHolderService : IAccountHolderService
             Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             EducationLevel = accountHolder.EducationLevel,
+            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
-            OutstandingFees = accountHolder.EducationAccount?.Enrollments?
-                .SelectMany(e => e.Invoices)
-                .Where(i => i.Status == "Outstanding")
-                .Sum(i => i.Amount) ?? 0
+        
         }).ToList();
 
         return new PaginatedList<AccountHolderResponse>(
@@ -254,8 +184,8 @@ public class AccountHolderService : IAccountHolderService
                 Age = DateTime.Now.Year - newAccountHolder.DateOfBirth.Year,
                 Balance = newEducationAccount.Balance,
                 EducationLevel = newAccountHolder.EducationLevel,
+                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt),
                 CourseCount = 0,
-                OutstandingFees = 0
             };
         }
         catch

@@ -1,4 +1,4 @@
-namespace MOE_System.Application.DTOs
+namespace MOE_System.Application.DTOs.AccountHolder.Response
 {
     public class AccountHolderDetailResponse
     {

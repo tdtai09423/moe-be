@@ -1,4 +1,4 @@
-namespace MOE_System.Application.DTOs
+namespace MOE_System.Application.DTOs.AccountHolder.Response
 {
     public class AccountHolderResponse
     {
@@ -7,9 +7,10 @@ namespace MOE_System.Application.DTOs
         public string NRIC { get; set; } = string.Empty;
         public int Age { get; set; }
         public decimal Balance { get; set; }
-        public string PaymentStatus { get; set; } = string.Empty;
         public string EducationLevel { get; set; } = string.Empty;
+        //public string ResidentialStatus { get; set; } = string.Empty; implement later
+        public DateOnly CreatedDate { get; set; }
         public int CourseCount { get; set; }
-        public decimal OutstandingFees { get; set; }
+
     }
 }

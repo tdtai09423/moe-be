@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace MOE_System.Application.DTOs
+namespace MOE_System.Application.DTOs.AccountHolder.Request
 {
     public class CreateAccountHolderRequest : IValidatableObject
     {
