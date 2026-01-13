@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class Provider
+public class Provider
 {
-    public string Id { get; set; } = null!;
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Name { get; set; } = string.Empty;
 
-    public string Name { get; set; } = null!;
-
-    public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
+    // Navigation property
+    public ICollection<Course> Courses { get; set; } = new List<Course>();
 }

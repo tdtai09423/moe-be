@@ -46,9 +46,9 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<BatchRuleExecution>(entity =>
         {
-            entity.HasOne(d => d.Batch).WithMany(p => p.BatchRuleExecutions).OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.BatchExecution).WithMany(p => p.BatchRuleExecutions).OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Rule).WithMany(p => p.BatchRuleExecutions).OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.TopupRule).WithMany(p => p.BatchRuleExecutions).OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Course>(entity =>

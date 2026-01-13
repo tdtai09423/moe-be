@@ -35,7 +35,7 @@ namespace MOE_System.EService.Application.Services
             {
                 Id = accountHolderId,
                 FullName = accountHolder.FirstName + " " + accountHolder.LastName,
-                NRIC = accountHolder.Nric,
+                NRIC = accountHolder.NRIC,
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 DateOfBirth = accountHolder.DateOfBirth,

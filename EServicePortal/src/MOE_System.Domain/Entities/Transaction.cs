@@ -1,25 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class Transaction
+public class Transaction
 {
-    public string Id { get; set; } = null!;
-
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public decimal Amount { get; set; }
-
-    public string InvoiceId { get; set; } = null!;
-
+    public string InvoiceId { get; set; } = string.Empty;
     public DateTime TransactionAt { get; set; }
-
-    public string PaymentMethod { get; set; } = null!;
-
-    public string Status { get; set; } = null!;
-
+    public string PaymentMethod { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
     public decimal BalanceBefore { get; set; }
-
     public decimal BalanceAfter { get; set; }
 
-    public virtual Invoice Invoice { get; set; } = null!;
+    // Navigation property
+    public Invoice? Invoice { get; set; }
 }

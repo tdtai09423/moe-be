@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class TopupRule
+public class TopupRule
 {
-    public string Id { get; set; } = null!;
-
-    public string RuleName { get; set; } = null!;
-
-    public string AgeCondition { get; set; } = null!;
-
-    public string BalanceCondition { get; set; } = null!;
-
-    public string EduLevelCond { get; set; } = null!;
-
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string RuleName { get; set; } = string.Empty;
+    public string AgeCondition { get; set; } = string.Empty;
+    public string BalanceCondition { get; set; } = string.Empty;
+    public string EduLevelCond { get; set; } = string.Empty;
     public decimal TopupAmount { get; set; }
 
-    public virtual ICollection<BatchRuleExecution> BatchRuleExecutions { get; set; } = new List<BatchRuleExecution>();
+    // Navigation property
+    public ICollection<BatchRuleExecution> BatchRuleExecutions { get; set; } = new List<BatchRuleExecution>();
 }

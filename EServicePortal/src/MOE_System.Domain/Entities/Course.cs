@@ -1,47 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MOE_System.Domain.Common;
 
 namespace MOE_System.Domain.Entities;
 
-public partial class Course
+public class Course : BaseEntity
 {
-    public string Id { get; set; } = null!;
-
-    public string CourseName { get; set; } = null!;
-
-    public string CourseCode { get; set; } = null!;
-
+    public string CourseName { get; set; } = string.Empty;
+    public string CourseCode { get; set; } = string.Empty;
     public decimal FeeAmount { get; set; }
-
     public int DurationByMonth { get; set; }
-
-    public string ProviderId { get; set; } = null!;
-
-    public string PaymentType { get; set; } = null!;
-
+    public string ProviderId { get; set; } = string.Empty;
+    public string PaymentType { get; set; } = string.Empty;
     public string? BillingCycle { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public string? CreatedBy { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
-
-    public string? UpdatedBy { get; set; }
-
-    public DateTime? DeletedAt { get; set; }
-
-    public string? DeletedBy { get; set; }
-
-    public DateTime EndDate { get; set; }
-
+    
+    // Fields from CourseOffering
+    public string TermName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
 
-    public string Status { get; set; } = null!;
-
-    public string TermName { get; set; } = null!;
-
-    public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
-
-    public virtual Provider Provider { get; set; } = null!;
+    // Navigation properties
+    public Provider? Provider { get; set; }
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

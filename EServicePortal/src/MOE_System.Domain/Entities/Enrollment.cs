@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class Enrollment
+public class Enrollment
 {
-    public string Id { get; set; } = null!;
-
-    public string CourseId { get; set; } = null!;
-
-    public string EducationAccountId { get; set; } = null!;
-
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string CourseId { get; set; } = string.Empty;
+    public string EducationAccountId { get; set; } = string.Empty;
     public DateTime EnrollDate { get; set; }
+    public string Status { get; set; } = string.Empty;
 
-    public string Status { get; set; } = null!;
-
-    public virtual Course Course { get; set; } = null!;
-
-    public virtual EducationAccount EducationAccount { get; set; } = null!;
-
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    // Navigation properties
+    public Course? Course { get; set; }
+    public EducationAccount? EducationAccount { get; set; }
+    public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
 }

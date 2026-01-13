@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class Admin
+public class Admin
 {
-    public string Id { get; set; } = null!;
-
-    public string UserName { get; set; } = null!;
-
-    public string Password { get; set; } = null!;
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 }

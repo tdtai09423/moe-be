@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace MOE_System.Domain.Entities;
 
-namespace MOE_System.Domain.Entities;
-
-public partial class BatchRuleExecution
+public class BatchRuleExecution
 {
-    public string Id { get; set; } = null!;
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string BatchID { get; set; } = string.Empty;
+    public string RuleID { get; set; } = string.Empty;
 
-    public string BatchId { get; set; } = null!;
-
-    public string RuleId { get; set; } = null!;
-
-    public virtual BatchExecution Batch { get; set; } = null!;
-
-    public virtual TopupRule Rule { get; set; } = null!;
+    // Navigation properties
+    public BatchExecution? BatchExecution { get; set; }
+    public TopupRule? TopupRule { get; set; }
 }
