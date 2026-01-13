@@ -10,5 +10,6 @@ public interface IAccountHolderService
 {
     Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20);
     Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId);
+    Task<ResidentInfoResponse> GetResidentAccountHolderByNRICAsync(string nric);
     Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request);
 }

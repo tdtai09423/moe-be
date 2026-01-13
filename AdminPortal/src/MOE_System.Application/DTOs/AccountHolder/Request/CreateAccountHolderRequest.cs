@@ -8,13 +8,9 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         [Required(ErrorMessage = "NRIC is required.")]
         public required string NRIC { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "First name is required.")]
+        [Required(ErrorMessage = "Full name is required.")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters.")]
-        public required string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Last name is required.")]
-        [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters.")]
-        public required string LastName { get; set; } = string.Empty;
+        public required string FullName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Date of birth is required.")]
         public required DateTime DateOfBirth { get; set; } = default;
@@ -27,6 +23,13 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         [Required(ErrorMessage = "Contact number is required.")]
         [Phone(ErrorMessage = "Invalid phone number format.")]
         public required string ContactNumber { get; set; }
+
+        public string EducationLevel { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Registered address is required.")]
+        public required string RegisteredAddress { get; set; }
+
+        public string MailingAddress { get; set; } = string.Empty;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -93,27 +96,6 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
                 yield return new ValidationResult(
                     "Date of birth is invalid.",
                     new[] { nameof(DateOfBirth) });
-            }
-
-            // Validate FirstName and LastName don't contain numbers or special characters
-            if (!string.IsNullOrWhiteSpace(FirstName))
-            {
-                if (!Regex.IsMatch(FirstName, @"^[a-zA-Z\s\-']+$"))
-                {
-                    yield return new ValidationResult(
-                        "First name can only contain letters, spaces, hyphens, and apostrophes.",
-                        new[] { nameof(FirstName) });
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(LastName))
-            {
-                if (!Regex.IsMatch(LastName, @"^[a-zA-Z\s\-']+$"))
-                {
-                    yield return new ValidationResult(
-                        "Last name can only contain letters, spaces, hyphens, and apostrophes.",
-                        new[] { nameof(LastName) });
-                }
             }
 
             // Validate ContactNumber format (Singapore format: 8 digits starting with 6, 8, or 9)
