@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\EService\**" />
+    <Content Remove="Controllers\EService\**" />
+    <EmbeddedResource Remove="Controllers\EService\**" />
+    <None Remove="Controllers\EService\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -17,10 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\MOE_System.EService.Application\MOE_System.EService.Application.csproj" />
     <ProjectReference Include="..\MOE_System.EService.Infrastructure\MOE_System.EService.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\EService\" />
   </ItemGroup>
 
 </Project>

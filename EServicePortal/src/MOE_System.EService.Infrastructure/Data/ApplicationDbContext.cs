@@ -22,8 +22,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Course> Courses { get; set; }
 
-    public virtual DbSet<CourseOffering> CourseOfferings { get; set; }
-
     public virtual DbSet<EducationAccount> EducationAccounts { get; set; }
 
     public virtual DbSet<Enrollment> Enrollments { get; set; }
@@ -58,11 +56,6 @@ public partial class ApplicationDbContext : DbContext
             entity.HasOne(d => d.Provider).WithMany(p => p.Courses).OnDelete(DeleteBehavior.ClientSetNull);
         });
 
-        modelBuilder.Entity<CourseOffering>(entity =>
-        {
-            entity.HasOne(d => d.Course).WithMany(p => p.CourseOfferings).OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
         modelBuilder.Entity<EducationAccount>(entity =>
         {
             entity.HasOne(d => d.AccountHolder).WithOne(p => p.EducationAccount).OnDelete(DeleteBehavior.ClientSetNull);
@@ -70,7 +63,7 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Enrollment>(entity =>
         {
-            entity.HasOne(d => d.CourseOffering).WithMany(p => p.Enrollments).OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Course).WithMany(p => p.Enrollments).OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.EducationAccount).WithMany(p => p.Enrollments).OnDelete(DeleteBehavior.ClientSetNull);
         });
