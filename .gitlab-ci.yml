@@ -50,21 +50,25 @@ build_eservice:
 deploy_admin_to_azure:
   stage: deploy
   image: mcr.microsoft.com/azure-cli
+  tags:
+    - dind-test
   dependencies:
     - build_admin
-  environment:
-    name: production/admin
-    url: https://$AZURE_APP_NAME.azurewebsites.net
   script:
     - echo "Logging in to Azure..."
     - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
     
+    - echo "Installing zip utility..."
+    - (apk add zip || yum install -y zip || apt-get update && apt-get install -y zip)
+    
     - echo "Zipping content..."
-    - apt-get update && apt-get install -y zip
-    - cd admin_publish && zip -r ../deploy.zip . && cd ..
+    - cd admin_publish
+    - zip -r ../deploy.zip .
+    - cd ..
     
     - echo "Deploying to Azure Web App..."
-    - az webapp deployment source config-zip --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src deploy.zip
+    - az webapp deploy --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src-path deploy.zip --type zip
+    
+  when: manual
   only:
     - main
-  when: manual
