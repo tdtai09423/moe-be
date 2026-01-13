@@ -23,10 +23,16 @@ public class ApplicationDbContext : DbContext
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Resident> Residents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Resident>(entity =>
+        {
+            entity.HasKey(e => e.NRIC);
+        });
 
         // Configure Admin
         modelBuilder.Entity<Admin>(entity =>
