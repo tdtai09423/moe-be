@@ -175,7 +175,7 @@ public class AccountHolderService : IAccountHolderService
             await _unitOfWork.SaveAsync();
             
             await transaction.CommitAsync();
-            
+
             return new AccountHolderResponse
             {
                 Id = newAccountHolder.Id,

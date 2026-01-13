@@ -6,7 +6,6 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
     public class CreateAccountHolderRequest : IValidatableObject
     {
         [Required(ErrorMessage = "NRIC is required.")]
-        [StringLength(50, MinimumLength = 9, ErrorMessage = "NRIC must be between 9 and 50 characters.")]
         public required string NRIC { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "First name is required.")]
@@ -33,11 +32,42 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         {
             if (!string.IsNullOrWhiteSpace(NRIC))
             {
-                var nricPattern = @"^[STFGM]\d{7}[A-Z]$";
+                var nricPattern = @"^[STM]\d{7}[A-Z]$";
                 if (!Regex.IsMatch(NRIC.ToUpper(), nricPattern))
                 {
                     yield return new ValidationResult(
                         "NRIC must be in valid Singapore format (e.g., S1234567A).",
+                        new[] { nameof(NRIC) });
+                }
+
+                if(NRIC.Length != 9)
+                {
+                    yield return new ValidationResult(
+                        "NRIC must be exactly 9 characters long.",
+                        new[] { nameof(NRIC) });
+                }
+
+                if (DateOfBirth.Year < 2000 && (NRIC.ToUpper().StartsWith("T") || NRIC.ToUpper().StartsWith("M")))
+                {
+                    yield return new ValidationResult(
+                        "NRIC starting with 'T' or 'M' is only for individuals born in or after the year 2000.",
+                        new[] { nameof(NRIC), nameof(DateOfBirth) });
+                }
+
+                if (DateOfBirth.Year >= 2000 && NRIC.ToUpper().StartsWith("S"))
+                {
+                    yield return new ValidationResult(
+                        "NRIC starting with 'S' is only for individuals born before the year 2000.",
+                        new[] { nameof(NRIC), nameof(DateOfBirth) });
+                }
+
+                string lastTwoDigitsOfBirthYear = (DateOfBirth.Year % 100).ToString("D2");
+                var match = Regex.Match(NRIC, @"\d{2}");
+
+                if (!match.Success)
+                {
+                    yield return new ValidationResult(
+                        "NRIC format is invalid.",
                         new[] { nameof(NRIC) });
                 }
             }
