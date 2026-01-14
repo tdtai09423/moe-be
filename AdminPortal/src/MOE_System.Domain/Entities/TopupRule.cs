@@ -8,6 +8,9 @@ public class TopupRule
     public string BalanceCondition { get; set; } = string.Empty;
     public string EduLevelCond { get; set; } = string.Empty;
     public decimal TopupAmount { get; set; }
+    public string RuleTargetType { get; set; } = string.Empty; // individual or batch
+    public string? TargetEducationAccountId { get; set; }
+    public EducationAccount? TargetEducationAccount { get; set; }
 
     // Navigation property
     public ICollection<BatchRuleExecution> BatchRuleExecutions { get; set; } = new List<BatchRuleExecution>();

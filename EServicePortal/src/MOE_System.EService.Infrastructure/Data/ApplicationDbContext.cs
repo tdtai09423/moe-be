@@ -83,6 +83,15 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.RuleName).IsRequired().HasMaxLength(200);
             entity.Property(e => e.TopupAmount).HasPrecision(18, 2);
+            entity.Property(e => e.RuleTargetType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TargetEducationAccountId).IsRequired(false); // Nullable FK
+            
+            // Optional FK relationship - null when RuleTargetType is "batch", populated when "individual"
+            entity.HasOne(e => e.TargetEducationAccount)
+                .WithMany()
+                .HasForeignKey(e => e.TargetEducationAccountId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
         });
 
         // Configure BatchExecution
