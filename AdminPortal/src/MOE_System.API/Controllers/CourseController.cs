@@ -5,7 +5,7 @@ using MOE_System.Application.Interfaces.Services;
 namespace MOE_System.API.Controllers;
 
 [ApiController]
-[Route("api/courses")]
+[Route("api/v1/admin/courses")]
 public class CourseController : ControllerBase
 {
     private readonly ICourseService _courseService;
