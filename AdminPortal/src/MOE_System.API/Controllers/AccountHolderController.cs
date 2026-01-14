@@ -42,5 +42,13 @@ namespace MOE_System.API.Controllers
             var accountHolder = await _accountHolderService.GetAccountHolderDetailAsync(id);
             return Success(accountHolder, "Account holder details retrieved successfully");
         }
+
+        [HttpGet("resident-info")]
+        public async Task<ActionResult<ApiResponse<ResidentInfoResponse>>> GetResidentInfo([FromQuery] string nric)
+        {
+            var residentInfo = await _accountHolderService.GetResidentAccountHolderByNRICAsync(nric);
+            return Success(residentInfo, "Resident info retrieved successfully");
+        }
+
     }
 }
