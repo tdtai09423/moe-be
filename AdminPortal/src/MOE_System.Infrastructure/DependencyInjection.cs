@@ -6,6 +6,8 @@ using MOE_System.Infrastructure.Repositories;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Interfaces;
 using MOE_System.Infrastructure.Services;
+using MOE_System.Application.Common;
+using MOE_System.Infrastructure.Common;
 
 namespace MOE_System.Infrastructure;
 
@@ -21,6 +23,10 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        services.Configure<AccountClosureOptions>(options =>
+            configuration.GetSection("ClosureAccountOptions")
+        );
+
         // Register Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -28,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IClock, SystemClock>();
 
         return services;
     }
