@@ -41,7 +41,8 @@ public class AccountHolderService : IAccountHolderService
             DateOfBirth = resident.DateOfBirth,
             Email = resident.EmailAddress,
             PhoneNumber = resident.MobileNumber,
-            RegisteredAddress = resident.RegisteredAddress
+            RegisteredAddress = resident.RegisteredAddress,
+            ResidentialStatus = resident.ResidentialStatus
         };
     }
 
@@ -134,7 +135,7 @@ public class AccountHolderService : IAccountHolderService
         query = ApplySorting(query, filters);
 
         query = query.Include(ah => ah.EducationAccount)
-                     .ThenInclude(ea => ea.Enrollments);
+                     .ThenInclude(ea => ea.Enrollments); 
 
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
         
@@ -337,6 +338,7 @@ public class AccountHolderService : IAccountHolderService
                 RegisteredAddress = request.RegisteredAddress,
                 MailingAddress = request.MailingAddress,
                 SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
+                ResidentialStatus = request.ResidentialStatus,
                 CreatedAt = DateTime.UtcNow,
             };
             
@@ -368,6 +370,8 @@ public class AccountHolderService : IAccountHolderService
                 Balance = newEducationAccount.Balance,
                 EducationLevel = newAccountHolder.EducationLevel,
                 CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt),
+                CreateTime = newAccountHolder.CreatedAt.ToString("HH:mm tt"),
+                ResidentialStatus = newAccountHolder.ResidentialStatus,
                 CourseCount = 0,
             };
         }
