@@ -6,6 +6,7 @@ using MOE_System.EService.Application.Common.Interfaces;
 using MOE_System.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using MOE_System.Domain.Common;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MOE_System.EService.Application.Services
 {
@@ -20,15 +21,21 @@ namespace MOE_System.EService.Application.Services
 
         public async Task<AccountHolderResponse> GetAccountHolderAsync(string accountHolderId)
         {
+            if (string.IsNullOrWhiteSpace(accountHolderId))
+            {
+                throw new BaseException.BadRequestException("ID must not be empty or null!");
+            }
+
             var repo = _unitOfWork.GetRepository<AccountHolder>();
 
-            var accountHolder = await repo.FindAsync(x => x.Id.ToLower() == accountHolderId.ToLower(), 
-                    q => q.Include(x => x.EducationAccount)
-                );
+            var accountHolder = await repo.Entities.AsNoTracking()
+                .Include(a => a.EducationAccount)
+                .Where(a => a.Id == accountHolderId)
+                .FirstOrDefaultAsync();
 
             if (accountHolder == null)
             {
-                throw new BaseException.NotFoundException("This account not found!");
+                throw new BaseException.NotFoundException("This account is not found!");
             }
 
             var accountHolderResponse = new AccountHolderResponse
