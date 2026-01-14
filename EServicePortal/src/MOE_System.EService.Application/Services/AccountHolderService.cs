@@ -80,5 +80,43 @@ namespace MOE_System.EService.Application.Services
                 MailingAddress = accountHolder.MailingAddress
             };
         }
+
+        public async Task<UpdateProfileResponse> UpdateProfileAsync(string accountHolderId, UpdateProfileRequest request)
+        {
+            var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
+            var accountHolder = await accountHolderRepo.FindAsync(x => x.Id.ToLower() == accountHolderId.ToLower());
+            if (accountHolder == null)
+            {
+                throw new BaseException.NotFoundException("Account holder not found");
+            }
+
+            accountHolder.Email = !string.IsNullOrWhiteSpace(request.Email)
+                          ? request.Email
+                          : accountHolder.Email;
+
+            accountHolder.ContactNumber = !string.IsNullOrWhiteSpace(request.ContactNumber)
+                                          ? request.ContactNumber
+                                          : accountHolder.ContactNumber;
+
+            accountHolder.MailingAddress = !string.IsNullOrWhiteSpace(request.MailingAddress)
+                                           ? request.MailingAddress
+                                           : accountHolder.MailingAddress;
+
+            accountHolder.RegisteredAddress = !string.IsNullOrWhiteSpace(request.RegisteredAddress)
+                                              ? request.RegisteredAddress
+                                              : accountHolder.RegisteredAddress;
+
+            accountHolderRepo.Update(accountHolder);
+            await _unitOfWork.SaveAsync();
+            return new UpdateProfileResponse
+            {
+                AccountHolderId = accountHolder.Id,
+                FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
+                Email = accountHolder.Email,
+                ContactNumber = accountHolder.ContactNumber,
+                MailingAddress = accountHolder.MailingAddress,
+                RegisteredAddress = accountHolder.RegisteredAddress
+            };
+        }
     }
 }

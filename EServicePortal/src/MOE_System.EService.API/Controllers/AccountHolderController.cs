@@ -39,4 +39,16 @@ public class AccountHolderController : ControllerBase
         var profile = await _accountHolderService.GetMyProfileAsync(accountHolderId);
         return Ok(profile);
     }
+
+    [HttpPut("me")]
+    public async Task<ActionResult<UpdateProfileResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        var accountHolderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(accountHolderId))
+        {
+            return Unauthorized("Invalid or missing authentication token");
+        }
+        var response = await _accountHolderService.UpdateProfileAsync(accountHolderId, request);
+        return Ok(response);
+    }
 }
