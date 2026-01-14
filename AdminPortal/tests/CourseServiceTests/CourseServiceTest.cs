@@ -814,6 +814,10 @@ public class CourseServiceTest
         result.PageIndex.Should().Be(2);
         result.Items[0].CourseName.Should().Be("Course 11");
     }
+    
+    #endregion
+
+    #region GetCourseDetailAsync Tests
 
     [Fact]
     public async Task GetCourseDetailAsync_WithValidCourseCode_ReturnsCourseDetail()
@@ -1253,4 +1257,6 @@ public class CourseServiceTest
         result.EnrolledStudents[1].StudentName.Should().Be("middle");
         result.EnrolledStudents[2].StudentName.Should().Be("oldest");
     }
+
+    #endregion
 }

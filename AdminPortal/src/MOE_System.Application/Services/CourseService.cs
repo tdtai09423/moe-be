@@ -110,7 +110,7 @@ public class CourseService : ICourseService
 
         var course = await courseRepo.FirstOrDefaultAsync(
             predicate: c => c.CourseCode == courseCode,
-            include: q => q
+            include: query => query
                 .Include(c => c.Provider)
                 .Include(c => c.Enrollments)
                     .ThenInclude(e => e.EducationAccount)
