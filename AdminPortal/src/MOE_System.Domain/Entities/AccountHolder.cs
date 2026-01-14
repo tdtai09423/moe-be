@@ -23,4 +23,6 @@ public class AccountHolder : BaseEntity
 
     // Navigation property (1-to-1)                                            
     public EducationAccount? EducationAccount { get; set; }
+
+    public string FullName => $"{FirstName} {LastName}";
 }
