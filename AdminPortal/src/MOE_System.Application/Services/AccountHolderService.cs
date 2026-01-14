@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.DTOs;
-using MOE_System.Application.Interfaces;
-using MOE_System.Application.Common;
-using MOE_System.Domain.Entities;
-using static MOE_System.Domain.Common.BaseException;
 using MOE_System.Application.DTOs.AccountHolder;
 using MOE_System.Application.DTOs.AccountHolder.Request;
 using MOE_System.Application.DTOs.AccountHolder.Response;
+using MOE_System.Application.Interfaces;
+using MOE_System.Domain.Entities;
+using MOE_System.Domain.Enums;
+using System.Text.RegularExpressions;
+using static MOE_System.Domain.Common.BaseException;
 
 namespace MOE_System.Application.Services;
 
@@ -20,6 +22,26 @@ public class AccountHolderService : IAccountHolderService
     {
         _unitOfWork = unitOfWork;
         _passwordService = passwordService;
+    }
+
+    public async Task<ResidentInfoResponse> GetResidentAccountHolderByNRICAsync(string nric)
+    {
+        var residentRepo = _unitOfWork.GetRepository<Resident>();
+        
+        var resident = await residentRepo.Entities
+            .FirstOrDefaultAsync(ah => ah.NRIC == nric);
+        if(resident == null)
+        {
+            throw new NotFoundException("RESIDENT_NOT_FOUND", $"Account holder with NRIC {nric} not found.");
+        }
+        return new ResidentInfoResponse
+        {
+            FullName = resident.PrincipalName,
+            DateOfBirth = resident.DateOfBirth,
+            Email = resident.EmailAddress,
+            PhoneNumber = resident.MobileNumber,
+            RegisteredAddress = resident.RegisteredAddress
+        };
     }
 
     public async Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId)
@@ -100,11 +122,71 @@ public class AccountHolderService : IAccountHolderService
         return accountHolderDetailResponse;
     }
 
-    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20)
+    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null)
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
         
-        var query = accountHolderRepo.Entities;
+        var query = accountHolderRepo.Entities.AsQueryable();
+
+        if (filters != null)
+        {
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var s = filters.Search.Trim().ToLower();
+                query = query.Where(ah => (ah.FirstName + " " + ah.LastName).ToLower().Contains(s)
+                                           || ah.NRIC.ToLower().Contains(s)
+                                           || ah.Email.ToLower().Contains(s)
+                                           || ah.ContactNumber.ToLower().Contains(s));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.EducationLevel))
+            {
+                var el = filters.EducationLevel.Trim().ToLower();
+                query = query.Where(ah => ah.EducationLevel != null && ah.EducationLevel.ToLower() == el);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+            {
+                var ss = filters.SchoolingStatus.Trim().ToLower();
+                query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+            }
+
+            /* if (!string.IsNullOrWhiteSpace(filters.ResidentialStatus))
+             {
+                 var rs = filters.ResidentialStatus.Trim().ToLower();
+                 query = query.Where(ah => ah.ResidentialStatus != null && ah.ResidentialStatus.ToLower() == rs);
+             }*/ // Assuming implementation later
+
+            if (filters.MinBlance.HasValue)
+            {
+                var min = filters.MinBlance.Value;
+                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
+            }
+
+            if (filters.MaxBlance.HasValue)
+            {
+                var max = filters.MaxBlance.Value;
+                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
+            }
+
+            if (filters.MinAge.HasValue || filters.MaxAge.HasValue)
+            {
+                var today = DateTime.Today;
+
+                if (filters.MinAge.HasValue)
+                {
+                    var maxDob = today.AddYears(-filters.MinAge.Value);
+                    query = query.Where(ah => ah.DateOfBirth <= maxDob);
+                }
+
+                if (filters.MaxAge.HasValue)
+                {
+                    var minDob = today.AddYears(-filters.MaxAge.Value);
+                    query = query.Where(ah => ah.DateOfBirth >= minDob);
+                }
+            }
+        }
+
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
         
         var accountHolderResponses = paginatedAccountHolders.Items.Select(accountHolder => new AccountHolderResponse
@@ -117,7 +199,6 @@ public class AccountHolderService : IAccountHolderService
             EducationLevel = accountHolder.EducationLevel,
             CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
-        
         }).ToList();
 
         return new PaginatedList<AccountHolderResponse>(
@@ -144,16 +225,31 @@ public class AccountHolderService : IAccountHolderService
                 throw new ValidationException("ACCOUNT_HOLDER_EXISTS", $"Account holder with NRIC {request.NRIC} already exists.");
             }
 
+            string pattern = @"^([^\s]+)\s+(.*)$";
+            Match match = Regex.Match(request.FullName, pattern);
+
+            string firstName = string.Empty;
+            string lastName = string.Empty;
+
+            if (match.Success)
+            {
+                firstName = match.Groups[1].Value;
+                lastName = match.Groups[2].Value;
+            }
+
             // Create Account Holder
             var newAccountHolder = new AccountHolder
             {
                 NRIC = request.NRIC,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                FirstName = firstName,
+                LastName = lastName,
                 DateOfBirth = request.DateOfBirth,
                 Email = request.Email,
                 ContactNumber = request.ContactNumber,
-                SchoolingStatus = "Not in School",
+                EducationLevel = request.EducationLevel,
+                RegisteredAddress = request.RegisteredAddress,
+                MailingAddress = request.MailingAddress,
+                SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
                 CreatedAt = DateTime.UtcNow,
             };
             
@@ -175,7 +271,7 @@ public class AccountHolderService : IAccountHolderService
             await _unitOfWork.SaveAsync();
             
             await transaction.CommitAsync();
-            
+
             return new AccountHolderResponse
             {
                 Id = newAccountHolder.Id,
@@ -198,4 +294,5 @@ public class AccountHolderService : IAccountHolderService
             await transaction.DisposeAsync();
         }
     }
+
 }
