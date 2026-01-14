@@ -56,6 +56,23 @@ public class SeedController : ControllerBase
         }
     }
 
+    [HttpPost("residents")]
+    public async Task<IActionResult> SeedResidents(int count = 50)
+    {
+        try
+        {
+            var seeder = new DatabaseSeeder(_context, _seederLogger);
+            await seeder.SeedResidentsAsync(count);
+            
+            return Ok(new { message = "Residents seeded successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding residents");
+            return StatusCode(500, new { message = "Error seeding residents", error = ex.Message });
+        }
+    }
+
     [HttpGet("status")]
     public async Task<IActionResult> GetSeedStatus()
     {
