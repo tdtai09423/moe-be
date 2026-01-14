@@ -7,7 +7,7 @@ using MOE_System.EService.Application.Common;
 using System.Reflection.Metadata.Ecma335;
 using Azure;
 using Microsoft.IdentityModel.Tokens;
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 using MOE_System.EService.Domain.Entities;
 using static MOE_System.EService.Domain.Common.BaseException;
 
