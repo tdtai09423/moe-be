@@ -165,6 +165,8 @@ public class AccountHolderService : IAccountHolderService
     {
         if (filters == null) return query;
 
+        query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.IsActive == filters.IsActive);
+
         if (!string.IsNullOrWhiteSpace(filters.Search))
         {
             var s = filters.Search.Trim().ToLower();
