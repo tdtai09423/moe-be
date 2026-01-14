@@ -6,7 +6,7 @@ using MOE_System.Application.Interfaces.Services;
 namespace MOE_System.API.Controllers;
 
 [ApiController]
-[Route("api/dashboard")]
+[Route("api/v1/admin/dashboard")]
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
@@ -24,9 +24,9 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("recent-activities")]
-    public async Task<ActionResult<IReadOnlyList<RecentActivityResponse>>> GetRecentActivitiesAsync(CancellationToken cancellationToken, [FromQuery] RecentActivityTypes type = RecentActivityTypes.Enrollments)
+    public async Task<ActionResult<IReadOnlyList<RecentActivityResponse>>> GetRecentActivitiesAsync(CancellationToken cancellationToken)
     {
-        var result = await _dashboardService.GetRecentActivitiesAsync(type, cancellationToken);
+        var result = await _dashboardService.GetRecentActivitiesAsync(cancellationToken);
         return Ok(result);
     }
 }

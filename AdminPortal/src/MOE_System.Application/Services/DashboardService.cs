@@ -20,88 +20,72 @@ public class DashboardService : IDashboardService
     {
         return type switch 
         { 
-            ScheduledTopUpTypes.Batch => GetBatchScheduledTopUpAsync(cancellationToken),
-            _ => throw new NotImplementedException($"The scheduled top-up type '{type}' is not implemented.")
+            ScheduledTopUpTypes.Batch => QueryScheduledTopUpAsync("BATCH", cancellationToken),
+            ScheduledTopUpTypes.Individual => QueryScheduledTopUpAsync("INDIVIDUAL", cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), $"The scheduled top-up type '{type}' is not recognized.")
         };
     }
 
-    private async Task<IReadOnlyList<ScheduledTopUpResponse>> GetBatchScheduledTopUpAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<ScheduledTopUpResponse>> QueryScheduledTopUpAsync(string targetType, CancellationToken cancellationToken)
     {
         var batchRuleRepository = _unitOfWork.GetRepository<BatchRuleExecution>();
-
         var now = DateTime.UtcNow;
 
         var results = await batchRuleRepository.ToListAsync(
-            predicate: x => 
-                x.BatchExecution != null &&
-                x.BatchExecution.Status == "Scheduled" && 
-                x.BatchExecution.ScheduledTime >= now,
-            include: x => x
-                .Include(y => y.BatchExecution)
-                .Include(z => z.TopupRule),
-            orderBy: x => x.OrderBy(y => y.BatchExecution!.ScheduledTime),
+            predicate: br =>
+                br.TopupRule != null &&
+                br.BatchExecution != null &&
+                br.TopupRule.RuleTargetType == targetType &&
+                br.BatchExecution.ScheduledTime >= now &&
+                br.BatchExecution.Status == "SCHEDULED",
+            include: query => query
+                .Include(x => x.TopupRule)
+                    .ThenInclude(r => r!.TargetEducationAccount)
+                        .ThenInclude(a => a!.AccountHolder)
+                .Include(x => x.BatchExecution),
+            orderBy: query => query.OrderBy(x => x.BatchExecution!.ScheduledTime),
             take: 5,
             cancellationToken: cancellationToken
         );
 
-        return results.Select(x => new ScheduledTopUpResponse(
-            x.TopupRule!.RuleName,
-            x.TopupRule!.TopupAmount,
-            x.BatchExecution!.ScheduledTime,
-            x.BatchExecution!.Status
-        )).ToList();
+        return results.Select(x =>
+        {
+            string name;
+
+            if (targetType == "BATCH")
+            {
+                name = x.TopupRule!.RuleName;
+            }
+            else
+            {
+                name = x.TopupRule!.TargetEducationAccount!.AccountHolder!.FullName;
+            }
+
+            return new ScheduledTopUpResponse(
+                name,
+                x.TopupRule.TopupAmount,
+                x.BatchExecution!.ScheduledTime,
+                x.BatchExecution!.Status
+            );
+        }).ToList();
     }
 
-    public Task<IReadOnlyList<RecentActivityResponse>> GetRecentActivitiesAsync(RecentActivityTypes type, CancellationToken cancellationToken)
-    {
-        return type switch 
-        { 
-            RecentActivityTypes.Accounts => GetLatestAccountAsync(cancellationToken),
-            RecentActivityTypes.Enrollments => GetLatestEnrollmentsAsync(cancellationToken),
-            _ => throw new NotImplementedException($"The recent activity type '{type}' is not implemented.")
-        };
-    }
-
-    private async Task<IReadOnlyList<RecentActivityResponse>> GetLatestAccountAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<RecentActivityResponse>> GetRecentActivitiesAsync(CancellationToken cancellationToken)
     {
         var educationAccountRepository = _unitOfWork.GetRepository<EducationAccount>();
 
         var results = await educationAccountRepository.ToListAsync(
-            include: x => x.Include(x => x.AccountHolder),
-            orderBy: x => x.OrderByDescending(y => y.CreatedAt),
+            include: query => query
+                .Include(e => e.AccountHolder),
+            orderBy: query => query.OrderByDescending(e => e.CreatedAt),
             take: 10,
             cancellationToken: cancellationToken
         );
 
-        return results.Select(x => new RecentActivityResponse(
-            null,
-            null,
-            x.AccountHolder?.FullName,
-            x.AccountHolder?.Email,
-            x.CreatedAt
-        )).ToList();
-    }
-
-    private async Task<IReadOnlyList<RecentActivityResponse>> GetLatestEnrollmentsAsync(CancellationToken cancellationToken)
-    {
-        var enrollmentRepository = _unitOfWork.GetRepository<Enrollment>();
-
-        var results = await enrollmentRepository.ToListAsync(
-            include: x => x
-                .Include(x => x.Course)
-                .Include(x => x.EducationAccount!)
-                    .ThenInclude(y => y.AccountHolder),
-            orderBy: x => x.OrderByDescending(y => y.EnrollDate),
-            take: 10,
-            cancellationToken: cancellationToken
-        );
-
-        return results.Select(x => new RecentActivityResponse(
-            x.EducationAccount?.AccountHolder?.FullName,
-            x.Course?.CourseName,
-            null,
-            null,
-            x.EnrollDate
+        return results.Select(e => new RecentActivityResponse(
+            e.AccountHolder!.FullName,
+            e.AccountHolder.Email,
+            e.CreatedAt
         )).ToList();
     }
 }
