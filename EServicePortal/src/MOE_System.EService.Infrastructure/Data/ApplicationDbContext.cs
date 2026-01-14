@@ -1,207 +1,181 @@
-using System;
-using System.Collections.Generic;
-using MOE_System.EService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using MOE_System.Domain.Entities;
+using MOE_System.EService.Domain.Entities;
 
 namespace MOE_System.EService.Infrastructure.Data;
 
-public partial class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext()
-    {
-    }
-
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<AccountHolder> AccountHolders { get; set; }
-
-    public virtual DbSet<Admin> Admins { get; set; }
-
-    public virtual DbSet<BatchExecution> BatchExecutions { get; set; }
-
-    public virtual DbSet<BatchRuleExecution> BatchRuleExecutions { get; set; }
-
-    public virtual DbSet<Course> Courses { get; set; }
-
-    public virtual DbSet<EducationAccount> EducationAccounts { get; set; }
-
-    public virtual DbSet<Enrollment> Enrollments { get; set; }
-
-    public virtual DbSet<HistoryOfChange> HistoryOfChanges { get; set; }
-
-    public virtual DbSet<Invoice> Invoices { get; set; }
-
-    public virtual DbSet<Provider> Providers { get; set; }
-
-    public virtual DbSet<TopupRule> TopupRules { get; set; }
-
-    public virtual DbSet<Transaction> Transactions { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseSqlServer("Data Source=.\\SQLEXPRESS;Integrated Security=True;Initial Catalog=MOE_DB;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;");
-        }
-    }
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        
+    // DbSets for all entities
+    public DbSet<Admin> Admins { get; set; }
+    public DbSet<AccountHolder> AccountHolders { get; set; }
+    public DbSet<EducationAccount> EducationAccounts { get; set; }
+    public DbSet<HistoryOfChange> HistoryOfChanges { get; set; }
+    public DbSet<TopupRule> TopupRules { get; set; }
+    public DbSet<BatchExecution> BatchExecutions { get; set; }
+    public DbSet<BatchRuleExecution> BatchRuleExecutions { get; set; }
+    public DbSet<Provider> Providers { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Enrollment> Enrollments { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AccountHolder>(entity =>
-        {
-            entity.HasIndex(e => e.Email, "IX_AccountHolders_Email").IsUnique();
+        base.OnModelCreating(modelBuilder);
 
-            entity.HasIndex(e => e.Nric, "IX_AccountHolders_NRIC").IsUnique();
-
-            entity.Property(e => e.Address).HasDefaultValue("");
-            entity.Property(e => e.CitizenId).HasMaxLength(50);
-            entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.FirstName).HasMaxLength(100);
-            entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.MailingAddress).HasDefaultValue("");
-            entity.Property(e => e.Nric)
-                .HasMaxLength(50)
-                .HasColumnName("NRIC");
-        });
-
+        // Configure Admin
         modelBuilder.Entity<Admin>(entity =>
         {
-            entity.Property(e => e.Password).HasMaxLength(256);
-            entity.Property(e => e.UserName).HasMaxLength(100);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Password).IsRequired().HasMaxLength(256);
         });
 
-        modelBuilder.Entity<BatchExecution>(entity =>
+        // Configure AccountHolder and EducationAccount (1-to-1)
+        modelBuilder.Entity<AccountHolder>(entity =>
         {
-            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.NRIC).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.CitizenId).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.EducationAccount)
+                .WithOne(e => e.AccountHolder)
+                .HasForeignKey<EducationAccount>(e => e.AccountHolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.NRIC).IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
         });
 
-        modelBuilder.Entity<BatchRuleExecution>(entity =>
-        {
-            entity.HasIndex(e => e.BatchId, "IX_BatchRuleExecutions_BatchID");
-
-            entity.HasIndex(e => e.RuleId, "IX_BatchRuleExecutions_RuleID");
-
-            entity.Property(e => e.BatchId).HasColumnName("BatchID");
-            entity.Property(e => e.RuleId).HasColumnName("RuleID");
-
-            entity.HasOne(d => d.Batch).WithMany(p => p.BatchRuleExecutions)
-                .HasForeignKey(d => d.BatchId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
-            entity.HasOne(d => d.Rule).WithMany(p => p.BatchRuleExecutions)
-                .HasForeignKey(d => d.RuleId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
-        modelBuilder.Entity<Course>(entity =>
-        {
-            entity.HasIndex(e => e.ProviderId, "IX_Courses_ProviderId");
-
-            entity.Property(e => e.CourseCode).HasMaxLength(50);
-            entity.Property(e => e.CourseName).HasMaxLength(200);
-            entity.Property(e => e.FeeAmount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.PaymentType).HasMaxLength(50);
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValue("");
-            entity.Property(e => e.TermName)
-                .HasMaxLength(100)
-                .HasDefaultValue("");
-
-            entity.HasOne(d => d.Provider).WithMany(p => p.Courses)
-                .HasForeignKey(d => d.ProviderId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
+        // Configure EducationAccount
         modelBuilder.Entity<EducationAccount>(entity =>
         {
-            entity.HasIndex(e => e.AccountHolderId, "IX_EducationAccounts_AccountHolderId").IsUnique();
-
-            entity.Property(e => e.Balance).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Password).HasMaxLength(256);
-            entity.Property(e => e.UserName).HasMaxLength(100);
-
-            entity.HasOne(d => d.AccountHolder).WithOne(p => p.EducationAccount)
-                .HasForeignKey<EducationAccount>(d => d.AccountHolderId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Password).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.Balance).HasPrecision(18, 2);
         });
 
-        modelBuilder.Entity<Enrollment>(entity =>
-        {
-            entity.HasIndex(e => e.CourseId, "IX_Enrollments_CourseId");
-
-            entity.HasIndex(e => e.EducationAccountId, "IX_Enrollments_EducationAccountId");
-
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Course).WithMany(p => p.Enrollments)
-                .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
-            entity.HasOne(d => d.EducationAccount).WithMany(p => p.Enrollments)
-                .HasForeignKey(d => d.EducationAccountId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
+        // Configure HistoryOfChange
         modelBuilder.Entity<HistoryOfChange>(entity =>
         {
-            entity.HasIndex(e => e.EducationAccountId, "IX_HistoryOfChanges_EducationAccountId");
-
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Type).HasMaxLength(50);
-
-            entity.HasOne(d => d.EducationAccount).WithMany(p => p.HistoryOfChanges)
-                .HasForeignKey(d => d.EducationAccountId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.EducationAccount)
+                .WithMany(e => e.HistoryOfChanges)
+                .HasForeignKey(e => e.EducationAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Invoice>(entity =>
-        {
-            entity.HasIndex(e => e.EnrollmentId, "IX_Invoices_EnrollmentID");
-
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.EnrollmentId).HasColumnName("EnrollmentID");
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Enrollment).WithMany(p => p.Invoices)
-                .HasForeignKey(d => d.EnrollmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
-        modelBuilder.Entity<Provider>(entity =>
-        {
-            entity.Property(e => e.Name).HasMaxLength(200);
-        });
-
+        // Configure TopupRule
         modelBuilder.Entity<TopupRule>(entity =>
         {
-            entity.Property(e => e.RuleName).HasMaxLength(200);
-            entity.Property(e => e.TopupAmount).HasColumnType("decimal(18, 2)");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RuleName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.TopupAmount).HasPrecision(18, 2);
         });
 
+        // Configure BatchExecution
+        modelBuilder.Entity<BatchExecution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+        });
+
+        // Configure BatchRuleExecution (junction table)
+        modelBuilder.Entity<BatchRuleExecution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.BatchExecution)
+                .WithMany(e => e.BatchRuleExecutions)
+                .HasForeignKey(e => e.BatchID)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.TopupRule)
+                .WithMany(e => e.BatchRuleExecutions)
+                .HasForeignKey(e => e.RuleID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Provider
+        modelBuilder.Entity<Provider>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        });
+
+        // Configure Course
+        modelBuilder.Entity<Course>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CourseName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.CourseCode).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.FeeAmount).HasPrecision(18, 2);
+            entity.Property(e => e.PaymentType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TermName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.Provider)
+                .WithMany(e => e.Courses)
+                .HasForeignKey(e => e.ProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Enrollment
+        modelBuilder.Entity<Enrollment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.Course)
+                .WithMany(e => e.Enrollments)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.EducationAccount)
+                .WithMany(e => e.Enrollments)
+                .HasForeignKey(e => e.EducationAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Invoice
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.Enrollment)
+                .WithMany(e => e.Invoices)
+                .HasForeignKey(e => e.EnrollmentID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Transaction
         modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.HasIndex(e => e.InvoiceId, "IX_Transactions_InvoiceId");
-
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.BalanceAfter).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.BalanceBefore).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Invoice).WithMany(p => p.Transactions)
-                .HasForeignKey(d => d.InvoiceId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.BalanceBefore).HasPrecision(18, 2);
+            entity.Property(e => e.BalanceAfter).HasPrecision(18, 2);
+            entity.Property(e => e.PaymentMethod).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(e => e.Invoice)
+                .WithMany(e => e.Transactions)
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
-
-        OnModelCreatingPartial(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

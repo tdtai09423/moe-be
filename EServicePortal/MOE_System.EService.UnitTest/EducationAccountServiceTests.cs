@@ -1,7 +1,7 @@
 ﻿using MockQueryable;
 using MockQueryable.Moq; // Để Mock IQueryable
-using MOE_System.Domain.Common;
-using MOE_System.Domain.Entities;
+using MOE_System.EService.Domain.Common;
+using MOE_System.EService.Domain.Entities;
 using MOE_System.EService.Application.Common.Interfaces;
 using MOE_System.EService.Application.Services;
 using Moq;
@@ -127,7 +127,7 @@ public class EducationAccountServiceTests
                 Id = "inv-01",
                 Amount = 1000,
                 Status = "Partial",
-                EnrollmentId = "enrol-01",
+                EnrollmentID = "enrol-01",
                 
                 // --- QUAN TRỌNG NHẤT: Gán ngược lại cha ---
                 Enrollment = enrollment1, // <--- FIX LỖI NULL REFERENCE Ở ĐÂY
@@ -142,7 +142,7 @@ public class EducationAccountServiceTests
                 Id = "inv-02",
                 Amount = 500,
                 Status = "Pending",
-                EnrollmentId = "enrol-01",
+                EnrollmentID = "enrol-01",
                 
                 // --- Gán ngược lại cha ---
                 Enrollment = enrollment1, // <--- FIX LỖI NULL REFERENCE Ở ĐÂY

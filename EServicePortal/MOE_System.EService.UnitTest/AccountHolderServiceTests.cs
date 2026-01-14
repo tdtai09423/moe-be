@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using Moq;
-using MOE_System.Domain.Entities;
+using MOE_System.EService.Domain.Entities;
 using MOE_System.EService.Application.Services;
 using MOE_System.EService.Application.Common.Interfaces;
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 using MockQueryable; // <--- QUAN TRỌNG: Phải có dòng này
 
 public class AccountHolderServiceTests

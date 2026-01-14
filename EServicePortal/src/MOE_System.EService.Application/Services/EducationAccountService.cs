@@ -91,7 +91,7 @@ namespace MOE_System.EService.Application.Services
                 var invoiceResponse = new OutstandingInvoiceInfo
                 {
                     InvoiceId = invoice.Id,
-                    EnrollmentId = invoice.EnrollmentId,
+                    EnrollmentId = invoice.EnrollmentID,
                     CourseName = invoice.Enrollment?.Course?.CourseName ?? "",
                     Amount = invoice.Amount,
                     DueDate = invoice.DueDate,

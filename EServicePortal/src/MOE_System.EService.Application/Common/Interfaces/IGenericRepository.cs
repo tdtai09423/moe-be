@@ -29,6 +29,7 @@ namespace MOE_System.EService.Application.Common.Interfaces
 
         //another
         T? Find(Expression<Func<T, bool>> predicate);
+        Task<T?> FindAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
         Task<PaginatedList<T>> GetPagging(IQueryable<T> query, int index, int pageSize);
         Task<decimal> SumAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default);
     }

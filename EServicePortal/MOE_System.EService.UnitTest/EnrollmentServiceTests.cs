@@ -1,6 +1,6 @@
 ﻿using MockQueryable.Moq; // Cần cái này để Mock IQueryable
-using MOE_System.Domain.Common;
-using MOE_System.Domain.Entities;
+using MOE_System.EService.Domain.Common;
+using MOE_System.EService.Domain.Entities;
 using MOE_System.EService.Application.Common; // Chứa PaginatedList
 using MOE_System.EService.Application.Common.Interfaces;
 using MOE_System.EService.Application.DTOs;
