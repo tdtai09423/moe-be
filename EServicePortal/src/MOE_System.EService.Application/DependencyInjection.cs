@@ -12,9 +12,9 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         // Register Application services
-        //services.AddScoped<IAccountHolderService, AccountHolderService>();
-        //services.AddScoped<IEducationAccountService, EducationAccountService>();
-        //services.AddScoped<IEnrollmentService, EnrollmentService>();
+        services.AddScoped<IAccountHolderService, AccountHolderService>();
+        services.AddScoped<IEducationAccountService, EducationAccountService>();
+        services.AddScoped<IEnrollmentService, EnrollmentService>();
 
         return services;
     }

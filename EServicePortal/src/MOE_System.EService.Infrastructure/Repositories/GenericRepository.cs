@@ -35,18 +35,6 @@ namespace MOE_System.EService.Infrastructure.Repositories
             return _dbSet.FirstOrDefault(predicate);
         }
 
-        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
-        {
-            IQueryable<T> query = _dbSet;
-
-            if (include != null)
-            {
-                query = include(query);
-            }
-
-            return query.FirstOrDefault(predicate);
-        }
-
         public T? GetById(object id)
         {
 
@@ -118,5 +106,6 @@ namespace MOE_System.EService.Infrastructure.Repositories
 
             return await query.SumAsync(selector, cancellationToken);
         }
+
     }
 }
