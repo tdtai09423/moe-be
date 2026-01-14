@@ -11,5 +11,6 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string RegisteredAddress { get; set; } = string.Empty;
+        public string ResidentialStatus { get; set; } = string.Empty;
     }
 }
