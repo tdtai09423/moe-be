@@ -1,4 +1,4 @@
-namespace MOE_System.Domain.Common;
+namespace MOE_System.EService.Domain.Common;
 
 /// <summary>
 /// Base exception classes for the application
