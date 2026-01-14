@@ -71,7 +71,7 @@ public class AccountHolderService : IAccountHolderService
 
             StudentInformation = new StudentInformation
             {
-                DateOfBirth = accountHolder.DateOfBirth,
+                DateOfBirth = accountHolder.DateOfBirth.ToString("dd/MM/yyyy"),
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 SchoolingStatus = accountHolder.SchoolingStatus,
@@ -165,7 +165,7 @@ public class AccountHolderService : IAccountHolderService
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             EducationLevel = accountHolder.EducationLevel,
             ResidentialStatus = accountHolder.ResidentialStatus,
-            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
+            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt).ToString("dd/MM/yyyy"),
             CreateTime = accountHolder.CreatedAt.ToString("HH:mm tt"),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
         }).ToList();
@@ -388,7 +388,7 @@ public class AccountHolderService : IAccountHolderService
                 Age = DateTime.Now.Year - newAccountHolder.DateOfBirth.Year,
                 Balance = newEducationAccount.Balance,
                 EducationLevel = newAccountHolder.EducationLevel,
-                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt),
+                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt).ToString("dd/MM/yyyy"),
                 CreateTime = newAccountHolder.CreatedAt.ToString("HH:mm tt"),
                 ResidentialStatus = newAccountHolder.ResidentialStatus,
                 CourseCount = 0,
