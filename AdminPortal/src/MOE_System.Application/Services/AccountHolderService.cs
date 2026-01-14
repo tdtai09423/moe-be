@@ -382,4 +382,123 @@ public class AccountHolderService : IAccountHolderService
         }
     }
 
+    public async Task<BulkAccountOperationResponse> ActivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already active"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = true;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
+    }
+
+    public async Task<BulkAccountOperationResponse> DeactivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (!educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already inactive"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = false;
+                educationAccount.ClosedDate = DateTime.UtcNow;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
+    }
+
 }
