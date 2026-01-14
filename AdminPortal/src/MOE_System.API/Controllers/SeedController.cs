@@ -22,6 +22,9 @@ public class SeedController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Seed all tables with comprehensive test data
+    /// </summary>
     [HttpPost("all")]
     public async Task<IActionResult> SeedAll()
     {
@@ -30,12 +33,38 @@ public class SeedController : ControllerBase
             var seeder = new DatabaseSeeder(_context, _seederLogger);
             await seeder.SeedAsync();
             
-            return Ok(new { message = "Database seeded successfully" });
+            var status = await seeder.GetSeedStatusAsync();
+            
+            return Ok(new 
+            { 
+                message = "Database seeded successfully", 
+                data = status 
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error seeding database");
             return StatusCode(500, new { message = "Error seeding database", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get the current status of seeded data for all tables
+    /// </summary>
+    [HttpGet("status")]
+    public async Task<IActionResult> GetSeedStatus()
+    {
+        try
+        {
+            var seeder = new DatabaseSeeder(_context, _seederLogger);
+            var status = await seeder.GetSeedStatusAsync();
+            
+            return Ok(status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting seed status");
+            return StatusCode(500, new { message = "Error getting seed status", error = ex.Message });
         }
     }
 
@@ -56,20 +85,20 @@ public class SeedController : ControllerBase
         }
     }
 
-    [HttpGet("status")]
-    public async Task<IActionResult> GetSeedStatus()
+    [HttpPost("residents")]
+    public async Task<IActionResult> SeedResidents(int count = 50)
     {
         try
         {
             var seeder = new DatabaseSeeder(_context, _seederLogger);
-            var status = await seeder.GetSeedStatusAsync();
+            await seeder.SeedResidentsAsync(count);
             
-            return Ok(status);
+            return Ok(new { message = "Residents seeded successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting seed status");
-            return StatusCode(500, new { message = "Error getting seed status", error = ex.Message });
+            _logger.LogError(ex, "Error seeding residents");
+            return StatusCode(500, new { message = "Error seeding residents", error = ex.Message });
         }
     }
 }

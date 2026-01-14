@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MOE_System.Application.Interfaces;
 using MOE_System.Application.Services;
 using MOE_System.Application.Interfaces.Services;
-using MOE_System.Application.Services.Dashboard;
 using FluentValidation;
 
 namespace MOE_System.Application;

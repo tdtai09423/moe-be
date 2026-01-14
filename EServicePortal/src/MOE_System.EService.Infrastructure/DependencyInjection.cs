@@ -30,6 +30,7 @@ public static class DependencyInjection
         // Register Custom Repositories
 
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<MOE_System.EService.Application.Interfaces.Services.IJwtService, JwtService>();
 
         return services;
     }

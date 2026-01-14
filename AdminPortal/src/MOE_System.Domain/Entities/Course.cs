@@ -13,6 +13,7 @@ public class Course : BaseEntity
     public string? BillingCycle { get; set; }
     
     // Fields from CourseOffering
+    public string LearningType { get; set; } = string.Empty;
     public string TermName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
