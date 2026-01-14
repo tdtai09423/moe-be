@@ -5,10 +5,6 @@ namespace MOE_System.Application.Interfaces.Services;
 
 public interface IDashboardService
 {
-    Task<DashboardOverviewResponse> GetDashboardOverviewAsync(
-        DateRangeType dateRangeType,
-        DateOnly? from,
-        DateOnly? to,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<ScheduledTopUpResponse>> GetTopUpTypesAsync(ScheduledTopUpTypes type, CancellationToken cancellationToken);
+    Task<IReadOnlyList<RecentActivityResponse>> GetRecentActivitiesAsync(CancellationToken cancellationToken);
 }

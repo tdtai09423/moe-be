@@ -22,7 +22,7 @@ namespace MOE_System.Admin.UnitTest
         //        public AccountHolderServiceTests()
         //        {
         //            _mockUnitOfWork = new Mock<IUnitOfWork>();
-        //            _mockPasswordService = new Mock<IPasswordService>();
+        //            _mockPasswordService = new Mock<IPasswordService>();  
         //            _mockAccountHolderRepo = new Mock<IGenericRepository<AccountHolder>>();
         //            _mockEducationAccountRepo = new Mock<IGenericRepository<EducationAccount>>();
         //            _mockTransaction = new Mock<IDbContextTransaction>();

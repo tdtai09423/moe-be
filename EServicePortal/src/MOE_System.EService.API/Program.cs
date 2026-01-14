@@ -1,4 +1,4 @@
-using MOE_System.EService.Application;
+﻿using MOE_System.EService.Application;
 using MOE_System.EService.Infrastructure;
 using MOE_System.EService.API.ServicesRegister;
 using MOE_System.EService.API.MiddleWares;
@@ -17,8 +17,23 @@ builder.Services.AddControllers(
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Configure JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 // Configure Swagger/OpenAPI
 builder.Services.AddSwaggerConfiguration();
+
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()   // Allow to all resources (React, Vue, Swagger...)
+                  .AllowAnyMethod()   // Allow GET, POST, PUT, DELETE...
+                  .AllowAnyHeader();  // All all Headers
+        });
+});
 
 var app = builder.Build();
 
@@ -31,8 +46,11 @@ app.UseExceptionMiddleware();
 // Configure the HTTP request pipeline.
 app.UseSwaggerConfiguration(app.Environment);
 
+app.UseCors("AllowAll");
+
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

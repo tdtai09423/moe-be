@@ -32,5 +32,12 @@ namespace MOE_System.Application.Common.Interfaces
         Task<PaginatedList<T>> GetPagging(IQueryable<T> query, int index, int pageSize);
         Task<decimal> SumAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default);
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default);
+        Task<List<T>> ToListAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            int take = 0,
+            CancellationToken cancellationToken = default
+        );
     }
 }

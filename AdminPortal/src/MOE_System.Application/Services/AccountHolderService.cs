@@ -9,6 +9,7 @@ using MOE_System.Application.Interfaces;
 using MOE_System.Domain.Entities;
 using MOE_System.Domain.Enums;
 using System.Text.RegularExpressions;
+using System.Linq;
 using static MOE_System.Domain.Common.BaseException;
 
 namespace MOE_System.Application.Services;
@@ -122,11 +123,19 @@ public class AccountHolderService : IAccountHolderService
         return accountHolderDetailResponse;
     }
 
-    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20)
+    public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null)
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
         
-        var query = accountHolderRepo.Entities;
+        var query = accountHolderRepo.Entities.AsQueryable();
+
+        // Apply filters and sorting via helper methods
+        query = ApplyFilters(query, filters);
+        query = ApplySorting(query, filters);
+
+        query = query.Include(ah => ah.EducationAccount)
+                     .ThenInclude(ea => ea.Enrollments);
+
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
         
         var accountHolderResponses = paginatedAccountHolders.Items.Select(accountHolder => new AccountHolderResponse
@@ -137,9 +146,10 @@ public class AccountHolderService : IAccountHolderService
             Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             EducationLevel = accountHolder.EducationLevel,
+            ResidentialStatus = accountHolder.ResidentialStatus,
             CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
+            CreateTime = accountHolder.CreatedAt.ToString("HH:mm tt"),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
-        
         }).ToList();
 
         return new PaginatedList<AccountHolderResponse>(
@@ -147,6 +157,142 @@ public class AccountHolderService : IAccountHolderService
             paginatedAccountHolders.TotalCount, 
             paginatedAccountHolders.PageIndex, 
             pageSize);
+    }
+
+    // Extracted filter logic
+    private IQueryable<AccountHolder> ApplyFilters(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
+    {
+        if (filters == null) return query;
+
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+        {
+            var s = filters.Search.Trim().ToLower();
+            query = query.Where(ah => (ah.FirstName + " " + ah.LastName).ToLower().Contains(s)
+                                       || ah.NRIC.ToLower().Contains(s)
+                                       || ah.Email.ToLower().Contains(s)
+                                       || ah.ContactNumber.ToLower().Contains(s));
+        }
+
+        if (filters.EducationLevels != null && filters.EducationLevels.Any())
+        {
+            var allowed = filters.EducationLevels.Select(e => e.ToString().ToLower()).ToList();
+            var allowedFriendly = filters.EducationLevels.Select(e => e.ToFriendlyString().ToLower()).ToList();
+
+            query = query.Where(ah => ah.EducationLevel != null && (
+                allowed.Contains(ah.EducationLevel.ToLower()) || allowedFriendly.Contains(ah.EducationLevel.ToLower())
+            ));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+        {
+            var ss = filters.SchoolingStatus.Trim().ToLower();
+            query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+        }
+
+        if (filters.ResidentialStatuses != null && filters.ResidentialStatuses.Any())
+        {
+            var allowedRes = filters.ResidentialStatuses.Select(r => r.ToString().ToLower()).ToList();
+            var allowedResFriendly = filters.ResidentialStatuses.Select(r => r.ToFriendlyString().ToLower()).ToList();
+
+           query = query.Where(ah => ah.ResidentialStatus != null && (
+                allowedRes.Contains(ah.ResidentialStatus.ToLower()) || allowedResFriendly.Contains(ah.ResidentialStatus.ToLower())
+            ));
+        }
+
+        if (filters.MinBlance.HasValue)
+        {
+            var min = filters.MinBlance.Value;
+            query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
+        }
+
+        if (filters.MaxBlance.HasValue)
+        {
+            var max = filters.MaxBlance.Value;
+            query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
+        }
+
+        if (filters.MinAge.HasValue || filters.MaxAge.HasValue)
+        {
+            var today = DateTime.Today;
+
+            if (filters.MinAge.HasValue)
+            {
+                var maxDob = today.AddYears(-filters.MinAge.Value);
+                query = query.Where(ah => ah.DateOfBirth <= maxDob);
+            }
+
+            if (filters.MaxAge.HasValue)
+            {
+                var minDob = today.AddYears(-filters.MaxAge.Value);
+                query = query.Where(ah => ah.DateOfBirth >= minDob);
+            }
+        }
+
+        return query;
+    }
+
+    // Extracted sorting logic
+    private IQueryable<AccountHolder> ApplySorting(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
+    {
+        if (filters == null || !filters.SortBy.HasValue) return query;
+
+        var desc = filters.SortDescending == true;
+        switch (filters.SortBy.Value)
+        {
+            case SortBy.FullName:
+                query = desc
+                    ? query.OrderByDescending(ah => (ah.FirstName + " " + ah.LastName).ToLower())
+                    : query.OrderBy(ah => (ah.FirstName + " " + ah.LastName).ToLower());
+                break;
+            case SortBy.Age:
+                query = desc
+                    ? query.OrderBy(ah => ah.DateOfBirth)
+                    : query.OrderByDescending(ah => ah.DateOfBirth);
+                break;
+            case SortBy.Balance:
+                query = desc
+                    ? query.OrderByDescending(ah => ah.EducationAccount != null ? ah.EducationAccount.Balance : 0)
+                    : query.OrderBy(ah => ah.EducationAccount != null ? ah.EducationAccount.Balance : 0);
+                break;
+            case SortBy.EducationLevel:
+                var primaryName = EducationLevel.Primary.ToString().ToLower();
+                var secondaryName = EducationLevel.Secondary.ToString().ToLower();
+                var postSecondaryName = EducationLevel.PostSecondary.ToString().ToLower();
+                var tertiaryName = EducationLevel.Tertiary.ToString().ToLower();
+                var postGraduateName = EducationLevel.PostGraduate.ToString().ToLower();
+
+                if (desc)
+                {
+                    query = query.OrderByDescending(ah => ah.EducationLevel != null ? (
+                        ah.EducationLevel.ToLower() == primaryName || ah.EducationLevel.ToLower() == "primary" ? 0 :
+                        ah.EducationLevel.ToLower() == secondaryName || ah.EducationLevel.ToLower() == "secondary" ? 1 :
+                        (ah.EducationLevel.ToLower() == postSecondaryName || ah.EducationLevel.ToLower() == "post-secondary" || ah.EducationLevel.ToLower() == "post secondary" || ah.EducationLevel.ToLower() == "postsecondary") ? 2 :
+                        ah.EducationLevel.ToLower() == tertiaryName || ah.EducationLevel.ToLower() == "tertiary" ? 3 :
+                        (ah.EducationLevel.ToLower() == postGraduateName || ah.EducationLevel.ToLower() == "post-graduate" || ah.EducationLevel.ToLower() == "post graduate" || ah.EducationLevel.ToLower() == "postgraduate") ? 4 : 99
+                    ) : 99);
+                }
+                else
+                {
+                    query = query.OrderBy(ah => ah.EducationLevel != null ? (
+                        ah.EducationLevel.ToLower() == primaryName || ah.EducationLevel.ToLower() == "primary" ? 0 :
+                        ah.EducationLevel.ToLower() == secondaryName || ah.EducationLevel.ToLower() == "secondary" ? 1 :
+                        (ah.EducationLevel.ToLower() == postSecondaryName || ah.EducationLevel.ToLower() == "post-secondary" || ah.EducationLevel.ToLower() == "post secondary" || ah.EducationLevel.ToLower() == "postsecondary") ? 2 :
+                        ah.EducationLevel.ToLower() == tertiaryName || ah.EducationLevel.ToLower() == "tertiary" ? 3 :
+                        (ah.EducationLevel.ToLower() == postGraduateName || ah.EducationLevel.ToLower() == "post-graduate" || ah.EducationLevel.ToLower() == "post graduate" || ah.EducationLevel.ToLower() == "postgraduate") ? 4 : 99
+                    ) : 99);
+                }
+
+                break;
+            case SortBy.CreatedDate:
+                query = desc
+                    ? query.OrderByDescending(ah => ah.CreatedAt)
+                    : query.OrderBy(ah => ah.CreatedAt);
+                break;
+            default:
+                break;
+        }
+
+        return query;
     }
 
     public async Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request)
