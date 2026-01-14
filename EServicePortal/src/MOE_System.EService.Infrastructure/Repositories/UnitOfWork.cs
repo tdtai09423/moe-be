@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using MOE_System.EService.Application.Common.Interfaces;
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 using MOE_System.EService.Infrastructure.Data;
 
 namespace MOE_System.EService.Infrastructure.Repositories

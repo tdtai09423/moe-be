@@ -6,6 +6,6 @@ namespace MOE_System.EService.Application.DTOs
         public string AccountHolderId { get; set; } = string.Empty;
         public decimal Balance { get; set; }
         public bool IsActive { get; set; }
-        public DateTime LastUpdated { get; set; }
+        public DateTime? LastUpdated { get; set; }
     }
 }

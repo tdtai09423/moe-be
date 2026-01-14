@@ -20,6 +20,7 @@ public class DatabaseSeeder
         try
         {
             await SeedProvidersAsync();
+            await SeedResidentsAsync(50);
         }
         catch (Exception ex)
         {
@@ -51,10 +52,32 @@ public class DatabaseSeeder
         _logger.LogInformation("Seeded {Count} providers successfully", providers.Count);
     }
 
+    public async Task SeedResidentsAsync(int count = 50)
+    {
+        // use Set<Resident>() in case DbSet<Resident> property is not declared
+        if (await _context.Set<Resident>().AnyAsync())
+        {
+            _logger.LogInformation("Residents already seeded. Skipping...");
+            return;
+        }
+
+        _logger.LogInformation("Seeding residents ({Count})...", count);
+
+        var residents = ResidentSeedData.GetResidents(count);
+
+        await _context.Set<Resident>().AddRangeAsync(residents);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Seeded {Count} residents successfully", residents.Count);
+    }
+
     public async Task<object> GetSeedStatusAsync()
     {
         var providersCount = await _context.Providers.CountAsync();
         var providersSeeded = providersCount > 0;
+
+        var residentsCount = await _context.Set<Resident>().CountAsync();
+        var residentsSeeded = residentsCount > 0;
 
         return new
         {
@@ -63,6 +86,12 @@ public class DatabaseSeeder
                 isSeeded = providersSeeded,
                 count = providersCount,
                 totalAvailable = ProviderSeedData.GetProviders().Count
+            },
+            residents = new
+            {
+                isSeeded = residentsSeeded,
+                count = residentsCount,
+                totalAvailable = ResidentSeedData.GetResidents(50).Count
             }
         };
     }

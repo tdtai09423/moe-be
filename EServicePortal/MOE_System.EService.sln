@@ -5,7 +5,7 @@ VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C3A15D8F-B9F1-4E5A-9D2C-E3F6A8B4C7E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MOE_System.Domain", "src\MOE_System.Domain\MOE_System.Domain.csproj", "{1F8E5C2A-9D3B-4F7E-A8C1-D5E9F6A7B2C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MOE_System.EService.Domain", "src\MOE_System.EService.Domain\MOE_System.EService.Domain.csproj", "{1F8E5C2A-9D3B-4F7E-A8C1-D5E9F6A7B2C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MOE_System.EService.Application", "src\MOE_System.EService.Application\MOE_System.EService.Application.csproj", "{2A9F6D3B-8E4C-4D8F-B9D2-E6F8A7B3C4D5}"
 EndProject
