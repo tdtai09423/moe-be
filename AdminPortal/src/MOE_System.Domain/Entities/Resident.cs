@@ -19,6 +19,5 @@ namespace MOE_System.Domain.Entities
         public string MobileNumber { get; set; } = string.Empty;
         public string EmailAddress { get; set; } = string.Empty;
         public string RegisteredAddress { get; set; } = string.Empty;
-
     }
 }

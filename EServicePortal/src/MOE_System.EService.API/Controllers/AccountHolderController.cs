@@ -56,6 +56,7 @@ public class AccountHolderController : ControllerBase
     }
 
     [HttpGet("{accountHolderId}")]
+    [AllowAnonymous]
     public async Task<ActionResult<AccountHolderResponse>> GetAccountHolder([FromRoute] string accountHolderId)
     {
         var accountHolderResponse = await _accountHolderService.GetAccountHolderAsync(accountHolderId);
@@ -63,6 +64,7 @@ public class AccountHolderController : ControllerBase
     }
 
     [HttpGet("{accountHolderId}/active-courses")]
+    [AllowAnonymous]
     public async Task<ActionResult<PaginatedList<ActiveCoursesResponse>>> GetActiveCourses([FromRoute] string accountHolderId, 
         [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
     {

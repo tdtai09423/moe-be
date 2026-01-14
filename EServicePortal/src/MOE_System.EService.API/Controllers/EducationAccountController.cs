@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MOE_System.EService.Application.Common;
 using MOE_System.EService.Application.DTOs;
 using MOE_System.EService.Application.Interfaces.Services;
@@ -17,6 +18,7 @@ namespace MOE_System.EService.API.Controllers
         }
 
         [HttpGet("{accountId}/balance")]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<BalanceResponse>>> GetAccountBalance([FromRoute] string accountId)
         {
             var balanceResponse = await _educationAccountService.GetBalanceAsync(accountId);
@@ -25,6 +27,7 @@ namespace MOE_System.EService.API.Controllers
         }
 
         [HttpGet("{accountId}/outstanding-fees")]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<OutstandingFeeResponse>>> GetAccountOutstandingFee([FromRoute] string accountId)
         {
             var outstandingFeeResponse = await _educationAccountService.GetOutstandingFeeAsync(accountId);
