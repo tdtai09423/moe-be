@@ -18,7 +18,7 @@ include:
 
 default:
   tags:
-    - linux-test-shell
+    - dind-test
 
 # ==================== ADMIN PORTAL ====================
 
