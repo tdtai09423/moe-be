@@ -66,7 +66,7 @@ namespace MOE_System.Application.Services
             }
 
             if (request.Provider != null && request.Provider.Count > 0)
-                predicate = predicate.And(x => x.Provider != null && request.Provider.Contains(x.Provider.Name));
+                predicate = predicate.And(x => x.Provider != null && request.Provider.Contains(x.Provider.Id));
 
             if (request.ModeOfTraining != null && request.ModeOfTraining.Count > 0)
                 predicate = predicate.And(x => request.ModeOfTraining.Contains(x.LearningType));
