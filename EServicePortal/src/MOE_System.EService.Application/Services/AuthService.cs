@@ -66,6 +66,7 @@ public class AuthService : IAuthService
             AccountHolderId = educationAccount.AccountHolderId,
             FullName = $"{educationAccount.AccountHolder?.FirstName} {educationAccount.AccountHolder?.LastName}",
             Email = educationAccount.AccountHolder?.Email ?? "",
+            NRIC = educationAccount.AccountHolder?.NRIC ?? "",
             ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes)
         };
     }
