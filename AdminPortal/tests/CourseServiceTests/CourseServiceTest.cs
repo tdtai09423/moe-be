@@ -212,7 +212,7 @@ public class CourseServiceTest
         { 
             PageNumber = 1, 
             PageSize = 10, 
-            Provider = "Tech Academy" 
+            Provider = new List<string> { "Tech Academy" } 
         };
 
         // Act
@@ -221,6 +221,106 @@ public class CourseServiceTest
         // Assert
         result.Items.Count.Should().Be(1);
         result.Items[0].ProviderName.Should().Be("Tech Academy");
+    }
+
+    [Fact]
+    public async Task GetCoursesAsync_WithModeFilter_ReturnsFilteredResults()
+    {
+        // Arrange
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Course 1", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "Recurring", 
+                LearningType = "Online",
+                FeeAmount = 500m, 
+                Enrollments = new List<Enrollment>() 
+            },
+            new() 
+            { 
+                CourseCode = "CS102", 
+                CourseName = "Course 2", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "One-time", 
+                LearningType = "In-person",
+                FeeAmount = 600m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        var filteredCourses = courses.Where(c => c.LearningType == "Online").ToList();
+        SetupMockRepository(filteredCourses);
+
+        var request = new GetCourseRequest 
+        { 
+            PageNumber = 1, 
+            PageSize = 10, 
+            ModeOfTraining = new List<string> { "Online" } 
+        };
+
+        // Act
+        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Items.Count.Should().Be(1);
+        result.Items[0].ModeOfTraining.Should().Be("Online");
+    }
+
+    [Fact]
+    public async Task GetCoursesAsync_WithStatusFilter_ReturnsFilteredResults()
+    {
+        // Arrange
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Course 1", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "Recurring", 
+                Status = "Active",
+                FeeAmount = 500m, 
+                Enrollments = new List<Enrollment>() 
+            },
+            new() 
+            { 
+                CourseCode = "CS102", 
+                CourseName = "Course 2", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "One-time", 
+                Status = "Inactive",
+                FeeAmount = 600m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        var filteredCourses = courses.Where(c => c.Status == "Active").ToList();
+        SetupMockRepository(filteredCourses);
+
+        var request = new GetCourseRequest 
+        { 
+            PageNumber = 1, 
+            PageSize = 10, 
+            Status = new List<string> { "Active" } 
+        };
+
+        // Act
+        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Items.Count.Should().Be(1);
+        result.Items[0].PaymentType.Should().Be("Recurring");
     }
 
     [Fact]
@@ -260,7 +360,7 @@ public class CourseServiceTest
         { 
             PageNumber = 1, 
             PageSize = 10, 
-            PaymentType = "Recurring" 
+            PaymentType = new List<string> { "Recurring" } 
         };
 
         // Act
@@ -310,7 +410,7 @@ public class CourseServiceTest
         { 
             PageNumber = 1, 
             PageSize = 10, 
-            BillingCycle = "Quarterly" 
+            BillingCycle = new List<string> { "Quarterly" } 
         };
 
         // Act
@@ -321,13 +421,14 @@ public class CourseServiceTest
         result.Items[0].CourseName.Should().Be("Course 2");
     }
 
-    #region Start Date Filtering Tests
+    #region Date Filtering Tests
     
     [Fact]
-    public async Task GetCoursesAsync_WithStartDateFromFilter_ReturnsFilteredResults()
+    public async Task GetCoursesAsync_WithStartDateFilter_ReturnsFilteredResults()
     {
         // Arrange
-        var baseDate = new DateTime(2026, 3, 1);
+        var filterDate = new DateOnly(2026, 3, 1);
+        var filterDateTime = filterDate.ToDateTime(TimeOnly.MinValue);
         var courses = new List<Course>
         {
             new() 
@@ -354,14 +455,14 @@ public class CourseServiceTest
             }
         };
 
-        var filteredCourses = courses.Where(c => c.StartDate >= baseDate).ToList();
+        var filteredCourses = courses.Where(c => c.StartDate >= filterDateTime).ToList();
         SetupMockRepository(filteredCourses);
 
         var request = new GetCourseRequest 
         { 
             PageNumber = 1, 
             PageSize = 10, 
-            StartDateFrom = baseDate 
+            StartDate = filterDate 
         };
 
         // Act
@@ -370,132 +471,15 @@ public class CourseServiceTest
         // Assert
         result.Items.Count.Should().Be(1);
         result.Items[0].CourseName.Should().Be("Late Course");
-        result.Items[0].StartDate.Should().BeOnOrAfter(baseDate);
+        result.Items[0].StartDate.Should().BeOnOrAfter(filterDateTime);
     }
 
     [Fact]
-    public async Task GetCoursesAsync_WithStartDateToFilter_ReturnsFilteredResults()
+    public async Task GetCoursesAsync_WithEndDateFilter_ReturnsFilteredResults()
     {
         // Arrange
-        var baseDate = new DateTime(2026, 3, 1);
-        var courses = new List<Course>
-        {
-            new() 
-            { 
-                CourseCode = "CS101", 
-                CourseName = "Early Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 2, 15),
-                EndDate = new DateTime(2026, 5, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 500m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS102", 
-                CourseName = "Late Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 15),
-                EndDate = new DateTime(2026, 6, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 600m,
-                Enrollments = new List<Enrollment>() 
-            }
-        };
-
-        var filteredCourses = courses.Where(c => c.StartDate <= baseDate).ToList();
-        SetupMockRepository(filteredCourses);
-
-        var request = new GetCourseRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            StartDateTo = baseDate 
-        };
-
-        // Act
-        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
-
-        // Assert
-        result.Items.Count.Should().Be(1);
-        result.Items[0].CourseName.Should().Be("Early Course");
-        result.Items[0].StartDate.Should().BeOnOrBefore(baseDate);
-    }
-
-    [Fact]
-    public async Task GetCoursesAsync_WithStartDateRangeFilter_ReturnsFilteredResults()
-    {
-        // Arrange
-        var startFrom = new DateTime(2026, 2, 20);
-        var startTo = new DateTime(2026, 3, 10);
-        var courses = new List<Course>
-        {
-            new() 
-            { 
-                CourseCode = "CS101", 
-                CourseName = "Early Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 2, 15),
-                EndDate = new DateTime(2026, 5, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 500m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS102", 
-                CourseName = "Mid Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 1),
-                EndDate = new DateTime(2026, 6, 1), 
-                PaymentType = "Recurring", 
-                FeeAmount = 600m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS103", 
-                CourseName = "Late Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 15),
-                EndDate = new DateTime(2026, 6, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 700m,
-                Enrollments = new List<Enrollment>() 
-            }
-        };
-
-        var filteredCourses = courses.Where(c => c.StartDate >= startFrom && c.StartDate <= startTo).ToList();
-        SetupMockRepository(filteredCourses);
-
-        var request = new GetCourseRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            StartDateFrom = startFrom,
-            StartDateTo = startTo 
-        };
-
-        // Act
-        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
-
-        // Assert
-        result.Items.Count.Should().Be(1);
-        result.Items[0].CourseName.Should().Be("Mid Course");
-        result.Items[0].StartDate.Should().BeOnOrAfter(startFrom);
-        result.Items[0].StartDate.Should().BeOnOrBefore(startTo);
-    }
-    
-    #endregion
-
-    #region End Date Filtering Tests
-    
-    [Fact]
-    public async Task GetCoursesAsync_WithEndDateFromFilter_ReturnsFilteredResults()
-    {
-        // Arrange
-        var baseDate = new DateTime(2026, 6, 1);
+        var filterDate = new DateOnly(2026, 6, 1);
+        var filterDateTime = filterDate.ToDateTime(TimeOnly.MinValue);
         var courses = new List<Course>
         {
             new() 
@@ -522,64 +506,14 @@ public class CourseServiceTest
             }
         };
 
-        var filteredCourses = courses.Where(c => c.EndDate >= baseDate).ToList();
+        var filteredCourses = courses.Where(c => c.EndDate <= filterDateTime).ToList();
         SetupMockRepository(filteredCourses);
 
         var request = new GetCourseRequest 
         { 
             PageNumber = 1, 
             PageSize = 10, 
-            EndDateFrom = baseDate 
-        };
-
-        // Act
-        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
-
-        // Assert
-        result.Items.Count.Should().Be(1);
-        result.Items[0].CourseName.Should().Be("Long Course");
-        result.Items[0].EndDate.Should().BeOnOrAfter(baseDate);
-    }
-
-    [Fact]
-    public async Task GetCoursesAsync_WithEndDateToFilter_ReturnsFilteredResults()
-    {
-        // Arrange
-        var baseDate = new DateTime(2026, 6, 1);
-        var courses = new List<Course>
-        {
-            new() 
-            { 
-                CourseCode = "CS101", 
-                CourseName = "Short Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 2, 15),
-                EndDate = new DateTime(2026, 5, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 500m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS102", 
-                CourseName = "Long Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 15),
-                EndDate = new DateTime(2026, 6, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 600m,
-                Enrollments = new List<Enrollment>() 
-            }
-        };
-
-        var filteredCourses = courses.Where(c => c.EndDate <= baseDate).ToList();
-        SetupMockRepository(filteredCourses);
-
-        var request = new GetCourseRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            EndDateTo = baseDate 
+            EndDate = filterDate 
         };
 
         // Act
@@ -588,71 +522,7 @@ public class CourseServiceTest
         // Assert
         result.Items.Count.Should().Be(1);
         result.Items[0].CourseName.Should().Be("Short Course");
-        result.Items[0].EndDate.Should().BeOnOrBefore(baseDate);
-    }
-
-    [Fact]
-    public async Task GetCoursesAsync_WithEndDateRangeFilter_ReturnsFilteredResults()
-    {
-        // Arrange
-        var endFrom = new DateTime(2026, 5, 20);
-        var endTo = new DateTime(2026, 6, 10);
-        var courses = new List<Course>
-        {
-            new() 
-            { 
-                CourseCode = "CS101", 
-                CourseName = "Early End Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 2, 15),
-                EndDate = new DateTime(2026, 5, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 500m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS102", 
-                CourseName = "Mid End Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 1),
-                EndDate = new DateTime(2026, 6, 1), 
-                PaymentType = "Recurring", 
-                FeeAmount = 600m,
-                Enrollments = new List<Enrollment>() 
-            },
-            new() 
-            { 
-                CourseCode = "CS103", 
-                CourseName = "Late End Course", 
-                Provider = new Provider { Name = "Academy" }, 
-                StartDate = new DateTime(2026, 3, 15),
-                EndDate = new DateTime(2026, 6, 15), 
-                PaymentType = "Recurring", 
-                FeeAmount = 700m,
-                Enrollments = new List<Enrollment>() 
-            }
-        };
-
-        var filteredCourses = courses.Where(c => c.EndDate >= endFrom && c.EndDate <= endTo).ToList();
-        SetupMockRepository(filteredCourses);
-
-        var request = new GetCourseRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            EndDateFrom = endFrom,
-            EndDateTo = endTo 
-        };
-
-        // Act
-        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
-
-        // Assert
-        result.Items.Count.Should().Be(1);
-        result.Items[0].CourseName.Should().Be("Mid End Course");
-        result.Items[0].EndDate.Should().BeOnOrAfter(endFrom);
-        result.Items[0].EndDate.Should().BeOnOrBefore(endTo);
+        result.Items[0].EndDate.Should().BeOnOrBefore(filterDateTime);
     }
     
     #endregion
@@ -817,6 +687,87 @@ public class CourseServiceTest
     
     #endregion
 
+    #region Multiple Filters Tests
+
+    [Fact]
+    public async Task GetCoursesAsync_WithMultipleFilters_AppliesAllFilters()
+    {
+        // Arrange
+        var startDate = new DateTime(2026, 3, 1);
+        var endDate = new DateTime(2026, 6, 30);
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Python Programming", 
+                Provider = new Provider { Name = "Tech Academy" }, 
+                StartDate = new DateTime(2026, 3, 15), 
+                EndDate = new DateTime(2026, 6, 15), 
+                PaymentType = "Monthly", 
+                LearningType = "Online",
+                Status = "Active",
+                FeeAmount = 1500m, 
+                Enrollments = new List<Enrollment>() 
+            },
+            new() 
+            { 
+                CourseCode = "CS102", 
+                CourseName = "Java Programming", 
+                Provider = new Provider { Name = "Code School" }, 
+                StartDate = new DateTime(2026, 2, 1), 
+                EndDate = new DateTime(2026, 7, 1), 
+                PaymentType = "One-time", 
+                LearningType = "In-person",
+                Status = "Inactive",
+                FeeAmount = 2500m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        // Apply multiple filters
+        var filteredCourses = courses
+            .Where(c => c.CourseName.Contains("Python"))
+            .Where(c => c.Provider?.Name == "Tech Academy")
+            .Where(c => c.PaymentType == "Monthly")
+            .Where(c => c.LearningType == "Online")
+            .Where(c => c.Status == "Active")
+            .Where(c => c.FeeAmount >= 1000m && c.FeeAmount <= 2000m)
+            .Where(c => c.StartDate >= startDate)
+            .Where(c => c.EndDate <= endDate)
+            .ToList();
+
+        SetupMockRepository(filteredCourses);
+
+        var request = new GetCourseRequest 
+        { 
+            PageNumber = 1, 
+            PageSize = 10,
+            SearchTerm = "Python",
+            Provider = new List<string> { "Tech Academy" },
+            PaymentType = new List<string> { "Monthly" },
+            ModeOfTraining = new List<string> { "Online" },
+            Status = new List<string> { "Active" },
+            StartDate = new DateOnly(2026, 3, 1),
+            EndDate = new DateOnly(2026, 6, 30),
+            TotalFeeMin = 1000m,
+            TotalFeeMax = 2000m
+        };
+
+        // Act
+        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Items.Count.Should().Be(1);
+        result.Items[0].CourseName.Should().Be("Python Programming");
+        result.Items[0].ProviderName.Should().Be("Tech Academy");
+        result.Items[0].PaymentType.Should().Be("Monthly");
+        result.Items[0].ModeOfTraining.Should().Be("Online");
+        result.Items[0].TotalFee.Should().Be(1500m);
+    }
+
+    #endregion
+
     #region GetCourseDetailAsync Tests
 
     [Fact]
@@ -973,6 +924,41 @@ public class CourseServiceTest
         result.EnrolledStudents[1].AccountHolderId.Should().Be("acc1");
         result.EnrolledStudents[1].TotalPaid.Should().Be(200m);
         result.EnrolledStudents[1].TotalDue.Should().Be(300m); // 500 - 200
+    }
+
+    #endregion
+
+    #region Mock Verification Tests
+
+    [Fact]
+    public async Task GetCoursesAsync_VerifyRepositoryMethodsCalled()
+    {
+        // Arrange
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Test Course", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "Monthly", 
+                FeeAmount = 500m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        SetupMockRepository(courses);
+        var request = new GetCourseRequest { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        _unitOfWorkMock.Verify(u => u.GetRepository<Course>(), Times.Once);
+        _courseRepositoryMock.Verify(r => r.Entities, Times.Once);
+        _courseRepositoryMock.Verify(r => r.GetPagging(It.IsAny<IQueryable<Course>>(), 1, 10), Times.Once);
     }
 
     [Fact]

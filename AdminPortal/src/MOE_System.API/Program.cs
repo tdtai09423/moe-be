@@ -20,6 +20,29 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Configure Swagger/OpenAPI
 builder.Services.AddSwaggerConfiguration();
 
+// Add CORS
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+        policy =>
+        {
+            if (allowedOrigins.Contains("*"))
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            }
+            else
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
+        });
+});
+
 var app = builder.Build();
 
 // Auto-migrate database on startup (Development only)
@@ -46,6 +69,8 @@ app.UseExceptionMiddleware();
 
 // Configure the HTTP request pipeline.
 app.UseSwaggerConfiguration(app.Environment);
+
+app.UseCors("AllowSpecificOrigins");
 
 app.UseHttpsRedirection();
 

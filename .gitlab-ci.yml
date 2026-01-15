@@ -28,7 +28,6 @@ build_admin:
     - echo "Restoring and Publishing Admin Portal..."
     - dotnet restore $ADMIN_SOLUTION
     - dotnet publish AdminPortal/src/MOE_System.API/MOE_System.API.csproj -c Release -o $CI_PROJECT_DIR/admin_publish
-    - ls $CI_PROJECT_DIR/admin_publish
   artifacts:
     name: "admin-package"
     paths:
@@ -43,7 +42,6 @@ build_eservice:
     - echo "Restoring and Publishing EService Portal..."
     - dotnet restore $ESERVICE_SOLUTION
     - dotnet publish EServicePortal/src/MOE_System.EService.API/MOE_System.EService.API.csproj -c Release -o $CI_PROJECT_DIR/eservice_publish
-    - ls $CI_PROJECT_DIR/eservice_publish
   artifacts:
     name: "e-service-package"
     paths:
@@ -55,26 +53,15 @@ build_eservice:
 deploy_admin_to_azure:
   stage: deploy
   image: mcr.microsoft.com/azure-cli
-  tags:
-    - dind-test
   dependencies:
     - build_admin
   script:
     - echo "Logging in to Azure..."
     - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-    
-    - echo "Zipping content using Python (Native)..."
-    - python3 -c "import shutil; shutil.make_archive('deploy', 'zip', 'admin_publish')"
-    
-    - echo "Checking if deploy.zip exists..."
-    - ls -lh deploy.zip
-    
+    - echo "Zipping content..."
+    - python3 -c "import shutil; shutil.make_archive('deploy_admin', 'zip', 'admin_publish')"
     - echo "Deploying to Azure Web App..."
-    - az webapp deploy --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src-path deploy.zip --type zip
-
-    # - echo "Force Disable Azure Auth to stop Microsoft Login prompt..."
-    # - az webapp auth update --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --enabled false
-    
+    - az webapp deploy --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --src-path deploy_admin.zip --type zip
   when: manual
   only:
     - main
@@ -82,26 +69,15 @@ deploy_admin_to_azure:
 deploy_eservice_to_azure:
   stage: deploy
   image: mcr.microsoft.com/azure-cli
-  tags:
-    - dind-test
   dependencies:
     - build_eservice
   script:
     - echo "Logging in to Azure..."
     - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-    
-    - echo "Zipping content using Python (Native)..."
+    - echo "Zipping content..."
     - python3 -c "import shutil; shutil.make_archive('deploy_eservice', 'zip', 'eservice_publish')"
-
-    - echo "Checking if deploy_eservice.zip exists..."
-    - ls -lh deploy_eservice.zip
-    
     - echo "Deploying to Azure Web App..."
     - az webapp deploy --name $AZURE_APP_NAME_E_SERVICE --resource-group $RESOURCE_GROUP --src-path deploy_eservice.zip --type zip
-
-    # - echo "Force Disable Azure Auth to stop Microsoft Login prompt..."
-    # - az webapp auth update --name $AZURE_APP_NAME --resource-group $RESOURCE_GROUP --enabled false
-    
   when: manual
   only:
     - main

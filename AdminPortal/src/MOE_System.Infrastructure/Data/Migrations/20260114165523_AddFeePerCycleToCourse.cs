@@ -5,25 +5,24 @@
 namespace MOE_System.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddResidentialStatusInAccountHolder : Migration
+    public partial class AddFeePerCycleToCourse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "ResidentialStatus",
-                table: "AccountHolders",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.AddColumn<decimal>(
+                name: "FeePerCycle",
+                table: "Courses",
+                type: "decimal(18,2)",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ResidentialStatus",
-                table: "AccountHolders");
+                name: "FeePerCycle",
+                table: "Courses");
         }
     }
 }
