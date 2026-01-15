@@ -4,6 +4,7 @@ using MOE_System.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MOE_System.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115121225_ChangeCasedeRelationshipInvoice")]
+    partial class ChangeCasedeRelationshipInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -501,9 +504,6 @@ namespace MOE_System.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("NumberOfAccountsAffected")
-                        .HasColumnType("int");
-
                     b.Property<string>("RuleName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -666,7 +666,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasOne("MOE_System.Domain.Entities.Invoice", "Invoice")
                         .WithMany("Transactions")
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Invoice");

@@ -269,7 +269,6 @@ public class AccountHolderService : IAccountHolderService
         return query;
     }
 
-    // Extracted sorting logic
     private IQueryable<AccountHolder> ApplySorting(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
     {
         if (filters == null || !filters.SortBy.HasValue) return query;
