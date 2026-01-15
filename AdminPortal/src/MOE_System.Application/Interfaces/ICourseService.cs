@@ -7,6 +7,7 @@ namespace MOE_System.Application.Interfaces
     public interface ICourseService
     {
         Task<PaginatedList<CourseListResponse>> GetCoursesAsync(GetCourseRequest request, CancellationToken cancellationToken);
+        Task<CourseDetailResponse?> GetCourseDetailAsync(string courseCode, CancellationToken cancellationToken = default);
         Task<CourseResponse> AddCourseAsync(AddCourseRequest request);
     }
 }
