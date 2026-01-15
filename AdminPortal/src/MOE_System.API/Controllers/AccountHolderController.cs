@@ -50,5 +50,21 @@ namespace MOE_System.API.Controllers
             return Success(residentInfo, "Resident info retrieved successfully");
         }
 
+        [HttpPost("bulk-activate")]
+        [ProducesResponseType(typeof(ApiResponse<BulkAccountOperationResponse>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<BulkAccountOperationResponse>>> BulkActivateAccounts(BulkAccountOperationRequest request)
+        {
+            var result = await _accountHolderService.ActivateAccountsAsync(request);
+            return Success(result, "Bulk account activation completed");
+        }
+
+        [HttpPost("bulk-deactivate")]
+        [ProducesResponseType(typeof(ApiResponse<BulkAccountOperationResponse>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<BulkAccountOperationResponse>>> BulkDeactivateAccounts(BulkAccountOperationRequest request)
+        {
+            var result = await _accountHolderService.DeactivateAccountsAsync(request);
+            return Success(result, "Bulk account deactivation completed");
+        }
+
     }
 }

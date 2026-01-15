@@ -7,6 +7,7 @@ public class Course : BaseEntity
     public string CourseName { get; set; } = string.Empty;
     public string CourseCode { get; set; } = string.Empty;
     public decimal FeeAmount { get; set; }
+    public decimal? FeePerCycle { get; set; }
     public int DurationByMonth { get; set; }
     public string ProviderId { get; set; } = string.Empty;
     public string PaymentType { get; set; } = string.Empty;

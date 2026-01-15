@@ -59,29 +59,27 @@ public class AccountHolderService : IAccountHolderService
 
         var accountHolderDetailResponse = new AccountHolderDetailResponse
         {
+            FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
+            NRIC = accountHolder.NRIC,
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
             OutstandingFees = accountHolder.EducationAccount?.Enrollments?
                 .SelectMany(e => e.Invoices)
-                .Where(i => i.Status == "Outstanding") 
+                .Where(i => i.Status == "Outstanding")
                 .Sum(i => i.Amount) ?? 0,
-            TotalFeesPaid = accountHolder.EducationAccount?.Enrollments?    
-                .SelectMany(e => e.Invoices)
-                .SelectMany(i => i.Transactions)
-                .Where(t => t.Status == "Completed" || t.Status == "Success")
-                .Sum(t => t.Amount) ?? 0, 
+            IsActive = accountHolder.EducationAccount?.IsActive,
+
             StudentInformation = new StudentInformation
             {
-                FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
-                NRIC = accountHolder.NRIC,
-                DateOfBirth = accountHolder.DateOfBirth,
+                DateOfBirth = accountHolder.DateOfBirth.ToString("dd/MM/yyyy"),
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 SchoolingStatus = accountHolder.SchoolingStatus,
                 EducationLevel = accountHolder.EducationLevel,
+                ResidentialStatus = accountHolder.ResidentialStatus,
                 RegisteredAddress = accountHolder.RegisteredAddress,
                 MailingAddress = accountHolder.MailingAddress,
-                CreatedAt = accountHolder.CreatedAt
+                CreatedAt = accountHolder.CreatedAt.ToString("dd/MM/yyyy")
             },
             EnrolledCourses = accountHolder.EducationAccount?.Enrollments?
                 .Select(e => new EnrolledCourseInfo
@@ -89,23 +87,42 @@ public class AccountHolderService : IAccountHolderService
                     CourseName = e.Course?.CourseName ?? string.Empty,
                     BillingCycle = e.Course?.BillingCycle ?? string.Empty,
                     TotalFree = e.Course?.FeeAmount ?? 0,
-                    //CollectedFee - Implement later
-                    EnrollmentDate = e.EnrollDate,
-                    //NextPaymentDue - Implement later
-                    //PaymentStatus - implement later
+                    EnrollmentDate = e.EnrollDate.ToString("dd/MM/yyyy"),
+                    CollectedFee = e.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0,
+                    NextPaymentDue = e.Invoices?
+                        .Where(i => i.Status == "Outstanding")
+                        .OrderBy(i => i.DueDate)
+                        .Select(i => i.DueDate.ToString("dd/mm/yyyy"))
+                        .FirstOrDefault() ?? "N/A",
+                    PaymentStatus = e.Invoices != null && e.Invoices.Any(i => i.Status == "Outstanding") ? "Pending" : "Up to Date"
 
                 }).ToList() ?? new List<EnrolledCourseInfo>(),
             OutstandingFeesDetails = accountHolder.EducationAccount?.Enrollments?
-                .SelectMany(e => e.Invoices 
+                .SelectMany(e => e.Invoices
                     .Where(i => i.Status == "Outstanding")
                     .Select(i => new OutstandingFeeInfo
                     {
                         CourseName = e.Course?.CourseName ?? string.Empty,
                         OutstandingAmount = i.Amount,
-                        DueDate = i.DueDate,
-                        PaymentStatus = i.Status
+                        DueDate = i.DueDate.ToString("dd/MM/yyyy"),
+                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 5).ToString("dd/MM/yyyy")
                     }))
                 .ToList() ?? new List<OutstandingFeeInfo>(),
+
+            //Assuming logic
+            TopUpHistory = accountHolder.EducationAccount?.HistoryOfChanges?.Where(h => h.Type == "TopUp")
+                .Select(h => new TopUpHistoryInfo
+                {
+                    /* TopUpTime
+                     Amount
+                     Reference
+                     Description*/
+
+                    //Implement later when have more info
+                })
+                .OrderByDescending(t => t.TopUpTime)
+                .ToList() ?? new List<TopUpHistoryInfo>(),
+
             PaymentHistory = accountHolder.EducationAccount?.Enrollments?
                 .SelectMany(e => e.Invoices)
                 .SelectMany(i => i.Transactions)
@@ -113,9 +130,9 @@ public class AccountHolderService : IAccountHolderService
                 .Select(t => new PaymentHistoryInfo
                 {
                     CourseName = t.Invoice?.Enrollment?.Course?.CourseName ?? string.Empty,
-                    PaymentDate = t.TransactionAt,
+                    PaymentDate = t.TransactionAt.ToString("dd/MM/yyyy"),
                     AmountPaid = t.Amount,
-                    Status = t.Status
+                    PaymentMethod = t.PaymentMethod
                 })
                 .OrderByDescending(p => p.PaymentDate)
                 .ToList() ?? new List<PaymentHistoryInfo>()
@@ -148,7 +165,7 @@ public class AccountHolderService : IAccountHolderService
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             EducationLevel = accountHolder.EducationLevel,
             ResidentialStatus = accountHolder.ResidentialStatus,
-            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
+            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt).ToString("dd/MM/yyyy"),
             CreateTime = accountHolder.CreatedAt.ToString("HH:mm tt"),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
         }).ToList();
@@ -371,7 +388,7 @@ public class AccountHolderService : IAccountHolderService
                 Age = DateTime.Now.Year - newAccountHolder.DateOfBirth.Year,
                 Balance = newEducationAccount.Balance,
                 EducationLevel = newAccountHolder.EducationLevel,
-                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt),
+                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt).ToString("dd/MM/yyyy"),
                 CreateTime = newAccountHolder.CreatedAt.ToString("HH:mm tt"),
                 ResidentialStatus = newAccountHolder.ResidentialStatus,
                 CourseCount = 0,
@@ -386,6 +403,125 @@ public class AccountHolderService : IAccountHolderService
         {
             await transaction.DisposeAsync();
         }
+    }
+
+    public async Task<BulkAccountOperationResponse> ActivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already active"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = true;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
+    }
+
+    public async Task<BulkAccountOperationResponse> DeactivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (!educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already inactive"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = false;
+                educationAccount.ClosedDate = DateTime.UtcNow;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
     }
 
 }
