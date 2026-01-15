@@ -30,6 +30,12 @@ namespace MOE_System.API.Controllers
             return Ok(courseDetail);
         }
 
+        [HttpGet("{courseId}/non-enrolled-accounts")]
+        public async Task<ActionResult<ApiResponse<NonEnrolledAccountResponse>>> GetNonEnrolledAccounts(string courseId)
+        {
+            var nonEnrolledAccounts = await _courseService.GetNonEnrolledAccountAsync(courseId);
+            return Success(nonEnrolledAccounts, "Non-enrolled accounts retrieved successfully");
+        }
         /// <summary>
         /// Add a new course to the system
         /// </summary>
@@ -43,6 +49,20 @@ namespace MOE_System.API.Controllers
         {
             var course = await _courseService.AddCourseAsync(request);
             return Created(course, "Course added successfully");
+        }
+
+        [HttpPost("bulk-enroll")]
+        public async Task<ActionResult<ApiResponse>> BulkEnrollAccount([FromBody] BulkEnrollAccountAsync request)
+        {
+            await _courseService.BulkEnrollAccountAsync(request);
+            return Success("Accounts enrolled successfully");
+        }
+
+        [HttpDelete("bulk-remove")]
+        public async Task<ActionResult<ApiResponse>> BulkRemoveEnrolledAccount([FromBody] BulkRemoveEnrolledAccountRequest request)
+        {
+            await _courseService.BulkRemoveEnrolledAccountAsync(request);
+            return Success("Accounts removed successfully");
         }
     }
 }

@@ -20,26 +20,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Configure Swagger/OpenAPI
 builder.Services.AddSwaggerConfiguration();
 
-// Add CORS
-var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
+// Add CORS - Allow all origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins",
         policy =>
         {
-            if (allowedOrigins.Contains("*"))
-            {
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-            }
-            else
-            {
-                policy.WithOrigins(allowedOrigins)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            }
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
         });
 });
 
@@ -70,9 +59,10 @@ app.UseExceptionMiddleware();
 // Configure the HTTP request pipeline.
 app.UseSwaggerConfiguration(app.Environment);
 
+// CORS must be before HTTPS redirection and authorization
 app.UseCors("AllowSpecificOrigins");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

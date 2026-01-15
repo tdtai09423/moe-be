@@ -501,6 +501,9 @@ namespace MOE_System.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NumberOfAccountsAffected")
+                        .HasColumnType("int");
+
                     b.Property<string>("RuleName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -642,7 +645,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasOne("MOE_System.Domain.Entities.Enrollment", "Enrollment")
                         .WithMany("Invoices")
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -663,7 +666,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasOne("MOE_System.Domain.Entities.Invoice", "Invoice")
                         .WithMany("Transactions")
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Invoice");

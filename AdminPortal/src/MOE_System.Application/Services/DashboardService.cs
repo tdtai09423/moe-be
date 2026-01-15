@@ -65,7 +65,8 @@ public class DashboardService : IDashboardService
                 name,
                 x.TopupRule.TopupAmount,
                 x.BatchExecution!.ScheduledTime,
-                x.BatchExecution!.Status
+                x.BatchExecution!.Status,
+                targetType == "BATCH" ? x.TopupRule.NumberOfAccountsAffected : null
             );
         }).ToList();
     }
@@ -83,6 +84,7 @@ public class DashboardService : IDashboardService
         );
 
         return results.Select(e => new RecentActivityResponse(
+            e.Id,
             e.AccountHolder!.FullName,
             e.AccountHolder.Email,
             e.CreatedAt

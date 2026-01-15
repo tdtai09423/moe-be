@@ -19,4 +19,12 @@ public class EducationAccount : BaseEntity
     public AccountHolder? AccountHolder { get; set; }
     public ICollection<HistoryOfChange> HistoryOfChanges { get; set; } = new List<HistoryOfChange>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+    public void CloseAccount()
+    {
+        if (!IsActive) return;
+        
+        IsActive = false;
+        ClosedDate = DateTime.UtcNow;
+    }
 }
