@@ -83,6 +83,7 @@ public class DashboardService : IDashboardService
         );
 
         return results.Select(e => new RecentActivityResponse(
+            e.Id,
             e.AccountHolder!.FullName,
             e.AccountHolder.Email,
             e.CreatedAt
