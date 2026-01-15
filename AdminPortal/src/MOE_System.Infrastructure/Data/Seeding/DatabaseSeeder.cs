@@ -473,6 +473,39 @@ public class DatabaseSeeder
                 Amount = 416.67m,
                 DueDate = new DateTime(2026, 3, 15),
                 Status = "Outstanding"
+            },
+            // Additional invoices for holder-001 (edu-001, enroll-001) - payment history
+            new Invoice
+            {
+                Id = "inv-009",
+                EnrollmentID = "enroll-001",
+                Amount = 500.00m,
+                DueDate = new DateTime(2025, 12, 15),
+                Status = "Paid"
+            },
+            new Invoice
+            {
+                Id = "inv-010",
+                EnrollmentID = "enroll-001",
+                Amount = 500.00m,
+                DueDate = new DateTime(2026, 1, 15),
+                Status = "Paid"
+            },
+            new Invoice
+            {
+                Id = "inv-011",
+                EnrollmentID = "enroll-001",
+                Amount = 500.00m,
+                DueDate = new DateTime(2025, 11, 15),
+                Status = "Paid"
+            },
+            new Invoice
+            {
+                Id = "inv-012",
+                EnrollmentID = "enroll-001",
+                Amount = 500.00m,
+                DueDate = new DateTime(2025, 10, 15),
+                Status = "Paid"
             }
         };
 
@@ -519,6 +552,51 @@ public class DatabaseSeeder
                 Status = "Success",
                 BalanceBefore = 4200.00m,
                 BalanceAfter = 3450.00m
+            },
+            // Additional transactions for holder-001 payment history
+            new Transaction
+            {
+                Id = "txn-004",
+                InvoiceId = "inv-009",
+                Amount = 500.00m,
+                TransactionAt = new DateTime(2025, 12, 10),
+                PaymentMethod = "SkillsFuture Credit",
+                Status = "Success",
+                BalanceBefore = 5500.00m,
+                BalanceAfter = 5000.00m
+            },
+            new Transaction
+            {
+                Id = "txn-005",
+                InvoiceId = "inv-010",
+                Amount = 500.00m,
+                TransactionAt = new DateTime(2026, 1, 8),
+                PaymentMethod = "Bank Transfer",
+                Status = "Success",
+                BalanceBefore = 5000.00m,
+                BalanceAfter = 4500.00m
+            },
+            new Transaction
+            {
+                Id = "txn-006",
+                InvoiceId = "inv-011",
+                Amount = 500.00m,
+                TransactionAt = new DateTime(2025, 11, 12),
+                PaymentMethod = "SkillsFuture Credit",
+                Status = "Success",
+                BalanceBefore = 6000.00m,
+                BalanceAfter = 5500.00m
+            },
+            new Transaction
+            {
+                Id = "txn-007",
+                InvoiceId = "inv-012",
+                Amount = 500.00m,
+                TransactionAt = new DateTime(2025, 10, 15),
+                PaymentMethod = "Credit Card",
+                Status = "Success",
+                BalanceBefore = 6500.00m,
+                BalanceAfter = 6000.00m
             }
         };
 

@@ -58,6 +58,7 @@ public class AccountHolderService : IAccountHolderService
             .Include(ah => ah.EducationAccount!)
                 .ThenInclude(ea => ea.Enrollments)
                     .ThenInclude(en => en.Invoices)
+                        .ThenInclude(inv => inv.Transactions)
             .Include(ah => ah.EducationAccount!)
                 .ThenInclude(ea => ea.HistoryOfChanges)
             .FirstOrDefaultAsync(ah => ah.Id == accountHolderId);
