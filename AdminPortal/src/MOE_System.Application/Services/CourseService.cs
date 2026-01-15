@@ -306,5 +306,98 @@ namespace MOE_System.Application.Services
                 }).ToList()
             );
         }
+
+        public async Task<NonEnrolledAccountResponse> GetNonEnrolledAccountAsync(string courseId, CancellationToken cancellationToken)
+        {
+            var eduRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+            var nonEnrolledList = await eduRepo.Entities
+                .Include(ec => ec.AccountHolder)
+                .Where(ec => !ec.Enrollments.Any(e => e.CourseId == courseId))
+                .ToListAsync();
+
+            return new NonEnrolledAccountResponse
+            {
+                NonEnrolledAccounts = nonEnrolledList.Select(ne => new NonEnrolledAccountDetailResponse
+                {
+                    EducationAccountId = ne.Id,
+                    FullName = ne.AccountHolder?.FullName ?? string.Empty,
+                    NRIC = ne.AccountHolder?.NRIC ?? string.Empty
+                }).ToList()
+            };
+        }
+
+        public async Task BulkRemoveEnrolledAccountAsync(BulkRemoveEnrolledAccountRequest request)
+        {
+            /*var enrollRepo = _unitOfWork.GetRepository<Enrollment>();
+
+            if (string.IsNullOrWhiteSpace(request.CourseId))
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+
+            // Validate that the course exists
+            if (!_unitOfWork.IsValid<Course>(request.CourseId))
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+
+            if (request.EducationAccountIds == null || request.EducationAccountIds.Count == 0)
+                return;
+
+            await enrollRepo.Entities
+                .Where(e => e.CourseId == request.CourseId && request.EducationAccountIds.Contains(e.EducationAccountId))
+                .ExecuteDeleteAsync();*/
+        }
+
+        public async Task BulkEnrollAccountAsync(BulkEnrollAccountAsync request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            if (string.IsNullOrWhiteSpace(request.CourseId))
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+
+            // Validate that the course exists
+            if (!_unitOfWork.IsValid<Course>(request.CourseId))
+            {
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+            }
+
+            if (request.AccountIds == null || request.AccountIds.Count == 0)
+                return;
+
+            var enrollmentRepo = _unitOfWork.GetRepository<Enrollment>();
+
+            var existingEnrollments = await enrollmentRepo.ToListAsync(
+                predicate: e => e.CourseId == request.CourseId && request.AccountIds.Contains(e.EducationAccountId)
+            );
+
+            var candidateStudentIds = request.AccountIds
+                .Where(accountId => !existingEnrollments.Any(e => e.EducationAccountId == accountId))
+                .Distinct()
+                .ToList();
+
+            if (!candidateStudentIds.Any())
+                return;
+
+            var accountRepo = _unitOfWork.GetRepository<EducationAccount>();
+            var existingAccounts = await accountRepo.ToListAsync(
+                predicate: a => candidateStudentIds.Contains(a.Id)
+            );
+
+            var validStudentIds = candidateStudentIds
+                .Where(id => existingAccounts.Any(a => a.Id == id))
+                .ToList();
+
+            if (!validStudentIds.Any())
+                return;
+
+            var newEnrollments = validStudentIds.Select(studentId => new Enrollment
+            {
+                CourseId = request.CourseId,
+                EducationAccountId = studentId,
+                EnrollDate = DateTime.UtcNow,
+                Status = "Active"
+            }).ToList();
+
+            await enrollmentRepo.InsertRangeAsync(newEnrollments);
+            await _unitOfWork.SaveAsync();
+        }
     }
 }
