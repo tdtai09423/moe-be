@@ -19,6 +19,7 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
     public class StudentInformation
     {
         public string DateOfBirth { get; set; } = string.Empty;
+        public int Age { get; set; }
         public string Email { get; set; } = string.Empty; 
         public string ContactNumber { get; set; } = string.Empty;
         public string EducationLevel { get; set; } = string.Empty;

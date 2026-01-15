@@ -82,6 +82,7 @@ public class AccountHolderService : IAccountHolderService
             StudentInformation = new StudentInformation
             {
                 DateOfBirth = accountHolder.DateOfBirth.ToString("dd/MM/yyyy"),
+                Age = DateTime.UtcNow.Year - accountHolder.DateOfBirth.Year - (DateTime.UtcNow.DayOfYear < accountHolder.DateOfBirth.DayOfYear ? 1 : 0),
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 SchoolingStatus = accountHolder.SchoolingStatus,
