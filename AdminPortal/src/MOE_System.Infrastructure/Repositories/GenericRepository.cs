@@ -51,7 +51,7 @@ namespace MOE_System.Infrastructure.Repositories
             return await query.GetPaginatedList(index, pageSize);
         }
 
-        public void Insert(T obj)
+        public void Insert(T obj)   
         {
             _dbSet.Add(obj);
         }
