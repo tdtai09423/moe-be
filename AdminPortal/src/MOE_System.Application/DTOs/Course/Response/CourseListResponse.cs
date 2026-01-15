@@ -7,7 +7,7 @@ public sealed record CourseListResponse
     string CourseCode,
     string CourseName,
     string ProviderName,
-    string Mode,
+    string ModeOfTraining,
     DateTime StartDate,
     DateTime EndDate,
     string PaymentType,

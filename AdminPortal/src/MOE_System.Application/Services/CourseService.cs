@@ -38,7 +38,7 @@ namespace MOE_System.Application.Services
                 c.CourseCode,
                 c.CourseName,
                 c.Provider != null ? c.Provider.Name : string.Empty,
-                string.Empty,
+                c.LearningType,
                 c.StartDate,
                 c.EndDate,
                 c.PaymentType,
@@ -61,6 +61,12 @@ namespace MOE_System.Application.Services
 
             if (!string.IsNullOrWhiteSpace(request.Provider))
                 predicate = predicate.And(x => x.Provider != null && x.Provider.Name == request.Provider);
+
+            if (!string.IsNullOrWhiteSpace(request.ModeOfTraining))
+                predicate = predicate.And(x => x.LearningType == request.ModeOfTraining);
+
+            if (!string.IsNullOrWhiteSpace(request.Status))
+                predicate = predicate.And(x => x.Status == request.Status);
 
             if (!string.IsNullOrWhiteSpace(request.PaymentType))
                 predicate = predicate.And(x => x.PaymentType == request.PaymentType);

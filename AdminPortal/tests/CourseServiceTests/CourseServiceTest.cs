@@ -224,6 +224,106 @@ public class CourseServiceTest
     }
 
     [Fact]
+    public async Task GetCoursesAsync_WithModeFilter_ReturnsFilteredResults()
+    {
+        // Arrange
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Course 1", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "Recurring", 
+                LearningType = "Online",
+                FeeAmount = 500m, 
+                Enrollments = new List<Enrollment>() 
+            },
+            new() 
+            { 
+                CourseCode = "CS102", 
+                CourseName = "Course 2", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "One-time", 
+                LearningType = "In-person",
+                FeeAmount = 600m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        var filteredCourses = courses.Where(c => c.LearningType == "Online").ToList();
+        SetupMockRepository(filteredCourses);
+
+        var request = new GetCourseRequest 
+        { 
+            PageNumber = 1, 
+            PageSize = 10, 
+            ModeOfTraining = "Online" 
+        };
+
+        // Act
+        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Items.Count.Should().Be(1);
+        result.Items[0].ModeOfTraining.Should().Be("Online");
+    }
+
+    [Fact]
+    public async Task GetCoursesAsync_WithStatusFilter_ReturnsFilteredResults()
+    {
+        // Arrange
+        var courses = new List<Course>
+        {
+            new() 
+            { 
+                CourseCode = "CS101", 
+                CourseName = "Course 1", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "Recurring", 
+                Status = "Active",
+                FeeAmount = 500m, 
+                Enrollments = new List<Enrollment>() 
+            },
+            new() 
+            { 
+                CourseCode = "CS102", 
+                CourseName = "Course 2", 
+                Provider = new Provider { Name = "Academy" }, 
+                StartDate = DateTime.Now, 
+                EndDate = DateTime.Now.AddMonths(3), 
+                PaymentType = "One-time", 
+                Status = "Inactive",
+                FeeAmount = 600m, 
+                Enrollments = new List<Enrollment>() 
+            }
+        };
+
+        var filteredCourses = courses.Where(c => c.Status == "Active").ToList();
+        SetupMockRepository(filteredCourses);
+
+        var request = new GetCourseRequest 
+        { 
+            PageNumber = 1, 
+            PageSize = 10, 
+            Status = "Active" 
+        };
+
+        // Act
+        var result = await _courseService.GetCoursesAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Items.Count.Should().Be(1);
+        result.Items[0].PaymentType.Should().Be("Recurring");
+    }
+
+    [Fact]
     public async Task GetCoursesAsync_WithPaymentTypeFilter_ReturnsFilteredResults()
     {
         // Arrange
@@ -833,6 +933,8 @@ public class CourseServiceTest
                 StartDate = DateTime.Now, 
                 EndDate = DateTime.Now.AddMonths(3), 
                 PaymentType = "Monthly", 
+                LearningType = "Online",
+                Status = "Active",
                 FeeAmount = 1500m, 
                 Enrollments = new List<Enrollment>() 
             },
@@ -844,6 +946,8 @@ public class CourseServiceTest
                 StartDate = DateTime.Now, 
                 EndDate = DateTime.Now.AddMonths(3), 
                 PaymentType = "One-time", 
+                LearningType = "In-person",
+                Status = "Inactive",
                 FeeAmount = 2500m, 
                 Enrollments = new List<Enrollment>() 
             }
@@ -854,6 +958,8 @@ public class CourseServiceTest
             .Where(c => c.CourseName.Contains("Python"))
             .Where(c => c.Provider?.Name == "Tech Academy")
             .Where(c => c.PaymentType == "Monthly")
+            .Where(c => c.LearningType == "Online")
+            .Where(c => c.Status == "Active")
             .Where(c => c.FeeAmount >= 1000m && c.FeeAmount <= 2000m)
             .ToList();
 
@@ -866,6 +972,8 @@ public class CourseServiceTest
             SearchTerm = "Python",
             Provider = "Tech Academy",
             PaymentType = "Monthly",
+            ModeOfTraining = "Online",
+            Status = "Active",
             TotalFeeMin = 1000m,
             TotalFeeMax = 2000m
         };
@@ -878,6 +986,7 @@ public class CourseServiceTest
         result.Items[0].CourseName.Should().Be("Python Programming");
         result.Items[0].ProviderName.Should().Be("Tech Academy");
         result.Items[0].PaymentType.Should().Be("Monthly");
+        result.Items[0].ModeOfTraining.Should().Be("Online");
         result.Items[0].TotalFee.Should().Be(1500m);
     }
 
