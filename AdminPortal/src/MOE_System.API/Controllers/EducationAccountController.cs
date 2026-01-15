@@ -17,7 +17,7 @@ public class EducationAccountController : ControllerBase
     [HttpDelete("close/{nric}")]
     public async Task<IActionResult> CloseEducationAccounts([FromRoute] string nric, CancellationToken cancellationToken)
     {
-        await _educationAccountService.CloseEducationAccountsAsync(nric, cancellationToken);
+        await _educationAccountService.CloseEducationAccountManuallyAsync(nric, cancellationToken);
         return Ok(new { Message = "Education accounts closure process initiated successfully." });
     }
 }

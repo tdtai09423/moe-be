@@ -126,9 +126,9 @@ namespace MOE_System.Infrastructure.Repositories
             return query.ToListAsync(cancellationToken);
         }
 
-        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)
+        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, bool asTracking = false, CancellationToken cancellationToken = default)
         {
-            IQueryable<T> query = _dbSet.AsNoTracking();
+            IQueryable<T> query = asTracking ? _dbSet : _dbSet.AsNoTracking();
 
             if (include != null)
             {
@@ -138,21 +138,9 @@ namespace MOE_System.Infrastructure.Repositories
             return query.FirstOrDefaultAsync(predicate, cancellationToken);
         }
 
-        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)
+        public Task<List<T>> ToListAsync(Expression<Func<T, bool>>? predicate = null, Func<IQueryable<T>, IQueryable<T>>? include = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, int take = 0, bool asTracking = false, CancellationToken cancellationToken = default)
         {
-            IQueryable<T> query = _dbSet;
-
-            if (include != null)
-            {
-                query = include(query);
-            }
-
-            return query.FirstOrDefaultAsync(predicate, cancellationToken);
-        }
-
-        public Task<List<T>> ToListAsync(Expression<Func<T, bool>>? predicate = null, Func<IQueryable<T>, IQueryable<T>>? include = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, CancellationToken cancellationToken = default)
-        {
-            IQueryable<T> query = _dbSet;
+            IQueryable<T> query = asTracking ? _dbSet : _dbSet.AsNoTracking();
 
             if (include != null)
             {
@@ -167,6 +155,11 @@ namespace MOE_System.Infrastructure.Repositories
             if (orderBy != null)
             {
                 query = orderBy(query);
+            }
+
+            if (take > 0)
+            {
+                query = query.Take(take);
             }
 
             return query.ToListAsync(cancellationToken);

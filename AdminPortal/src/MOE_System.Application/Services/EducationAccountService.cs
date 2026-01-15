@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using MOE_System.Application.Common;
 using MOE_System.Application.Common.Interfaces;
 using MOE_System.Application.Interfaces.Services;
@@ -21,39 +22,28 @@ public class EducationAccountService : IEducationAccountService
         _options = options.Value;
     }
 
-    public async Task CloseEducationAccountsAsync(string? nric, CancellationToken cancellationToken = default)
-    {
-        if (!string.IsNullOrWhiteSpace(nric))
-        {
-            await CloseAccountsByNRICAsync(nric, cancellationToken);
-            return;
-        }
-        await AutoCloseAccountsAsync(cancellationToken);
-    }
-
-    private async Task CloseAccountsByNRICAsync(string nric, CancellationToken cancellationToken)
+    public async Task CloseEducationAccountManuallyAsync(string nric, CancellationToken cancellationToken)
     {
         var accountHolderRepository = _unitOfWork.GetRepository<AccountHolder>();
 
-        var accountToClose = await accountHolderRepository.FirstOrDefaultAsync(
+        var holder = await accountHolderRepository.FirstOrDefaultAsync(
             predicate: ah => ah.NRIC == nric,
             include: query => query.Include(ah => ah.EducationAccount),
+            asTracking: true,
             cancellationToken: cancellationToken
         );
 
-        if (accountToClose == null || accountToClose.EducationAccount == null)
+        if (holder == null || holder.EducationAccount == null)
         {
-            throw new NotFoundException("Account holder or associated education account not found.");
+            throw new NotFoundException("Education account holder not found.");
         }
-        var now = _clock.UtcNow();
 
-        accountToClose.EducationAccount.CloseAccount();
-        accountToClose.EducationAccount.ClosedDate = now;
+        holder.EducationAccount.CloseAccount();
 
         await _unitOfWork.SaveAsync();
     }
 
-    private async Task AutoCloseAccountsAsync(CancellationToken cancellationToken)
+    public async Task AutoCloseEducationAccountsAsync(CancellationToken cancellationToken)
     {
         if (!_options.Enabled)
         {
@@ -61,28 +51,29 @@ public class EducationAccountService : IEducationAccountService
         }
 
         var today = _clock.TodayInTimeZone(_options.TimeZone);
-        var utcNow = _clock.UtcNow();
 
-        if (today.Day != _options.ProcessingDay || today.Month != _options.ProcessingMonth)
+        var scheduledDate = new DateOnly(today.Year, _options.ProcessingMonth, _options.ProcessingDay);
+
+        if (today < scheduledDate)
         {
             return;
         }
 
         var accountHolderRepository = _unitOfWork.GetRepository<AccountHolder>();
 
-        var accountHolders = await accountHolderRepository.ToListAsync
-        (
-            predicate: ah => ah.EducationAccount != null && ah.EducationAccount.IsActive,
+        var holders = await accountHolderRepository.ToListAsync(
+            predicate: ah => ah.EducationAccount != null && ah.EducationAccount.IsActive && ah.EducationAccount.ClosedDate == null,
             include: query => query.Include(ah => ah.EducationAccount),
+            asTracking: true,
             cancellationToken: cancellationToken
         );
 
-        foreach (var holder in accountHolders)
+        foreach (var holder in holders)
         {
-            if (holder.IsEligibleForAccountClosure(_options.AgeThreshold, today))
-            {
-                holder.EducationAccount!.CloseAccount();
-            }
+            if (!holder.IsEligibleForAccountClosure(_options.AgeThreshold, today.Year))
+                continue;
+
+            holder.EducationAccount!.CloseAccount();
         }
 
         await _unitOfWork.SaveAsync();

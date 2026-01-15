@@ -24,11 +24,9 @@ public class AccountHolder : BaseEntity
     // Navigation property (1-to-1)                                            
     public EducationAccount? EducationAccount { get; set; }
 
-    public bool IsEligibleForAccountClosure(int age, DateOnly onDate)
+    public bool IsEligibleForAccountClosure(int age, int referenceYear)
     {
-        var reachedDate = DateOnly.FromDateTime(DateOfBirth).AddYears(age);
-
-        return reachedDate <= onDate;
+        return referenceYear - DateOfBirth.Year >= age;
     }
     public string FullName => $"{FirstName} {LastName}";
 }
