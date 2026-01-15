@@ -11,6 +11,7 @@ public sealed record CourseListResponse
     DateTime StartDate,
     DateTime EndDate,
     string PaymentType,
+    string BillingCycle,
     decimal TotalFee,
     int EnrolledCount
 );
