@@ -24,12 +24,17 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         [Phone(ErrorMessage = "Invalid phone number format.")]
         public required string ContactNumber { get; set; }
 
-        public string EducationLevel { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Education level is required.")]
+        public required string EducationLevel { get; set; }
 
         [Required(ErrorMessage = "Registered address is required.")]
         public required string RegisteredAddress { get; set; }
 
-        public string MailingAddress { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Mailing address is required.")]
+        public required string MailingAddress { get; set; }
+
+        [Required(ErrorMessage = "Residential status is required.")]
+        public required string ResidentialStatus { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

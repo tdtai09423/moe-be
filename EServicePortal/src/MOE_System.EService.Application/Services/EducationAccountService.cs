@@ -67,6 +67,7 @@ namespace MOE_System.EService.Application.Services
 
             var activeCourses = await enrollmentRepo.Entities
                 .Include(c => c.EducationAccount).ThenInclude(e => e.AccountHolder)
+                .Include(c => c.Course)
                 .Include(e => e.Invoices).ThenInclude(i => i.Transactions)
                 .Where(e => e.EducationAccountId == educationAccountId)
                 .ToListAsync();
