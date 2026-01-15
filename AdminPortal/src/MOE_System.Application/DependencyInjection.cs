@@ -2,9 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MOE_System.Application.Interfaces;
 using MOE_System.Application.Services;
 using MOE_System.Application.Interfaces.Services;
-using MOE_System.Application.Services.Dashboard;
 using FluentValidation;
-using MOE_System.Application.Common;
 
 namespace MOE_System.Application;
 
@@ -18,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IAccountHolderService, AccountHolderService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IEducationAccountService, EducationAccountService>();
+        services.AddScoped<ICourseService, CourseService>();
         
         return services;
     }

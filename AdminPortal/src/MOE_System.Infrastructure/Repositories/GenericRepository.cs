@@ -51,7 +51,7 @@ namespace MOE_System.Infrastructure.Repositories
             return await query.GetPaginatedList(index, pageSize);
         }
 
-        public void Insert(T obj)
+        public void Insert(T obj)   
         {
             _dbSet.Add(obj);
         }
@@ -95,16 +95,47 @@ namespace MOE_System.Infrastructure.Repositories
             await _dbSet.AddRangeAsync(obj);
         }
 
-        public async Task<decimal> SumAsync(Expression<Func<T, bool>>? predicate, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken = default)
+        public Task<List<T>> ToListAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            int take = 0,
+            CancellationToken cancellationToken = default
+        )
         {
-            IQueryable<T> query = _dbSet.AsNoTracking();
+            IQueryable<T> query = _dbSet;
+            if (include != null)
+            {
+                query = include(query);
+            }
 
             if (predicate != null)
             {
                 query = query.Where(predicate);
             }
 
-            return await query.SumAsync(selector, cancellationToken);
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            if (take > 0)
+            {
+                query = query.Take(take);
+            }
+            return query.ToListAsync(cancellationToken);
+        }
+
+        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return query.FirstOrDefaultAsync(predicate, cancellationToken);
         }
 
         public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)

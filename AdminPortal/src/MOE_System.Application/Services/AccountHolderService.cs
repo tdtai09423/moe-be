@@ -9,6 +9,7 @@ using MOE_System.Application.Interfaces;
 using MOE_System.Domain.Entities;
 using MOE_System.Domain.Enums;
 using System.Text.RegularExpressions;
+using System.Linq;
 using static MOE_System.Domain.Common.BaseException;
 
 namespace MOE_System.Application.Services;
@@ -40,7 +41,8 @@ public class AccountHolderService : IAccountHolderService
             DateOfBirth = resident.DateOfBirth,
             Email = resident.EmailAddress,
             PhoneNumber = resident.MobileNumber,
-            RegisteredAddress = resident.RegisteredAddress
+            RegisteredAddress = resident.RegisteredAddress,
+            ResidentialStatus = resident.ResidentialStatus
         };
     }
 
@@ -57,29 +59,27 @@ public class AccountHolderService : IAccountHolderService
 
         var accountHolderDetailResponse = new AccountHolderDetailResponse
         {
+            FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
+            NRIC = accountHolder.NRIC,
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
             OutstandingFees = accountHolder.EducationAccount?.Enrollments?
                 .SelectMany(e => e.Invoices)
-                .Where(i => i.Status == "Outstanding") 
+                .Where(i => i.Status == "Outstanding")
                 .Sum(i => i.Amount) ?? 0,
-            TotalFeesPaid = accountHolder.EducationAccount?.Enrollments?    
-                .SelectMany(e => e.Invoices)
-                .SelectMany(i => i.Transactions)
-                .Where(t => t.Status == "Completed" || t.Status == "Success")
-                .Sum(t => t.Amount) ?? 0, 
+            IsActive = accountHolder.EducationAccount?.IsActive,
+
             StudentInformation = new StudentInformation
             {
-                FullName = $"{accountHolder.FirstName} {accountHolder.LastName}",
-                NRIC = accountHolder.NRIC,
-                DateOfBirth = accountHolder.DateOfBirth,
+                DateOfBirth = accountHolder.DateOfBirth.ToString("dd/MM/yyyy"),
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 SchoolingStatus = accountHolder.SchoolingStatus,
                 EducationLevel = accountHolder.EducationLevel,
+                ResidentialStatus = accountHolder.ResidentialStatus,
                 RegisteredAddress = accountHolder.RegisteredAddress,
                 MailingAddress = accountHolder.MailingAddress,
-                CreatedAt = accountHolder.CreatedAt
+                CreatedAt = accountHolder.CreatedAt.ToString("dd/MM/yyyy")
             },
             EnrolledCourses = accountHolder.EducationAccount?.Enrollments?
                 .Select(e => new EnrolledCourseInfo
@@ -87,23 +87,42 @@ public class AccountHolderService : IAccountHolderService
                     CourseName = e.Course?.CourseName ?? string.Empty,
                     BillingCycle = e.Course?.BillingCycle ?? string.Empty,
                     TotalFree = e.Course?.FeeAmount ?? 0,
-                    //CollectedFee - Implement later
-                    EnrollmentDate = e.EnrollDate,
-                    //NextPaymentDue - Implement later
-                    //PaymentStatus - implement later
+                    EnrollmentDate = e.EnrollDate.ToString("dd/MM/yyyy"),
+                    CollectedFee = e.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0,
+                    NextPaymentDue = e.Invoices?
+                        .Where(i => i.Status == "Outstanding")
+                        .OrderBy(i => i.DueDate)
+                        .Select(i => i.DueDate.ToString("dd/mm/yyyy"))
+                        .FirstOrDefault() ?? "N/A",
+                    PaymentStatus = e.Invoices != null && e.Invoices.Any(i => i.Status == "Outstanding") ? "Pending" : "Up to Date"
 
                 }).ToList() ?? new List<EnrolledCourseInfo>(),
             OutstandingFeesDetails = accountHolder.EducationAccount?.Enrollments?
-                .SelectMany(e => e.Invoices 
+                .SelectMany(e => e.Invoices
                     .Where(i => i.Status == "Outstanding")
                     .Select(i => new OutstandingFeeInfo
                     {
                         CourseName = e.Course?.CourseName ?? string.Empty,
                         OutstandingAmount = i.Amount,
-                        DueDate = i.DueDate,
-                        PaymentStatus = i.Status
+                        DueDate = i.DueDate.ToString("dd/MM/yyyy"),
+                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 5).ToString("dd/MM/yyyy")
                     }))
                 .ToList() ?? new List<OutstandingFeeInfo>(),
+
+            //Assuming logic
+            TopUpHistory = accountHolder.EducationAccount?.HistoryOfChanges?.Where(h => h.Type == "TopUp")
+                .Select(h => new TopUpHistoryInfo
+                {
+                    /* TopUpTime
+                     Amount
+                     Reference
+                     Description*/
+
+                    //Implement later when have more info
+                })
+                .OrderByDescending(t => t.TopUpTime)
+                .ToList() ?? new List<TopUpHistoryInfo>(),
+
             PaymentHistory = accountHolder.EducationAccount?.Enrollments?
                 .SelectMany(e => e.Invoices)
                 .SelectMany(i => i.Transactions)
@@ -111,9 +130,9 @@ public class AccountHolderService : IAccountHolderService
                 .Select(t => new PaymentHistoryInfo
                 {
                     CourseName = t.Invoice?.Enrollment?.Course?.CourseName ?? string.Empty,
-                    PaymentDate = t.TransactionAt,
+                    PaymentDate = t.TransactionAt.ToString("dd/MM/yyyy"),
                     AmountPaid = t.Amount,
-                    Status = t.Status
+                    PaymentMethod = t.PaymentMethod
                 })
                 .OrderByDescending(p => p.PaymentDate)
                 .ToList() ?? new List<PaymentHistoryInfo>()
@@ -128,64 +147,12 @@ public class AccountHolderService : IAccountHolderService
         
         var query = accountHolderRepo.Entities.AsQueryable();
 
-        if (filters != null)
-        {
-            if (!string.IsNullOrWhiteSpace(filters.Search))
-            {
-                var s = filters.Search.Trim().ToLower();
-                query = query.Where(ah => (ah.FirstName + " " + ah.LastName).ToLower().Contains(s)
-                                           || ah.NRIC.ToLower().Contains(s)
-                                           || ah.Email.ToLower().Contains(s)
-                                           || ah.ContactNumber.ToLower().Contains(s));
-            }
+        // Apply filters and sorting via helper methods
+        query = ApplyFilters(query, filters);
+        query = ApplySorting(query, filters);
 
-            if (!string.IsNullOrWhiteSpace(filters.EducationLevel))
-            {
-                var el = filters.EducationLevel.Trim().ToLower();
-                query = query.Where(ah => ah.EducationLevel != null && ah.EducationLevel.ToLower() == el);
-            }
-
-            if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
-            {
-                var ss = filters.SchoolingStatus.Trim().ToLower();
-                query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
-            }
-
-            /* if (!string.IsNullOrWhiteSpace(filters.ResidentialStatus))
-             {
-                 var rs = filters.ResidentialStatus.Trim().ToLower();
-                 query = query.Where(ah => ah.ResidentialStatus != null && ah.ResidentialStatus.ToLower() == rs);
-             }*/ // Assuming implementation later
-
-            if (filters.MinBlance.HasValue)
-            {
-                var min = filters.MinBlance.Value;
-                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
-            }
-
-            if (filters.MaxBlance.HasValue)
-            {
-                var max = filters.MaxBlance.Value;
-                query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
-            }
-
-            if (filters.MinAge.HasValue || filters.MaxAge.HasValue)
-            {
-                var today = DateTime.Today;
-
-                if (filters.MinAge.HasValue)
-                {
-                    var maxDob = today.AddYears(-filters.MinAge.Value);
-                    query = query.Where(ah => ah.DateOfBirth <= maxDob);
-                }
-
-                if (filters.MaxAge.HasValue)
-                {
-                    var minDob = today.AddYears(-filters.MaxAge.Value);
-                    query = query.Where(ah => ah.DateOfBirth >= minDob);
-                }
-            }
-        }
+        query = query.Include(ah => ah.EducationAccount)
+                     .ThenInclude(ea => ea.Enrollments); 
 
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
         
@@ -197,7 +164,9 @@ public class AccountHolderService : IAccountHolderService
             Age = DateTime.Now.Year - accountHolder.DateOfBirth.Year,
             Balance = accountHolder.EducationAccount?.Balance ?? 0,
             EducationLevel = accountHolder.EducationLevel,
-            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt),
+            ResidentialStatus = accountHolder.ResidentialStatus,
+            CreatedDate = DateOnly.FromDateTime(accountHolder.CreatedAt).ToString("dd/MM/yyyy"),
+            CreateTime = accountHolder.CreatedAt.ToString("HH:mm tt"),
             CourseCount = accountHolder.EducationAccount?.Enrollments?.Count ?? 0,
         }).ToList();
 
@@ -206,6 +175,144 @@ public class AccountHolderService : IAccountHolderService
             paginatedAccountHolders.TotalCount, 
             paginatedAccountHolders.PageIndex, 
             pageSize);
+    }
+
+    // Extracted filter logic
+    private IQueryable<AccountHolder> ApplyFilters(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
+    {
+        if (filters == null) return query;
+
+        query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.IsActive == filters.IsActive);
+
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+        {
+            var s = filters.Search.Trim().ToLower();
+            query = query.Where(ah => (ah.FirstName + " " + ah.LastName).ToLower().Contains(s)
+                                       || ah.NRIC.ToLower().Contains(s)
+                                       || ah.Email.ToLower().Contains(s)
+                                       || ah.ContactNumber.ToLower().Contains(s));
+        }
+
+        if (filters.EducationLevels != null && filters.EducationLevels.Any())
+        {
+            var allowed = filters.EducationLevels.Select(e => e.ToString().ToLower()).ToList();
+            var allowedFriendly = filters.EducationLevels.Select(e => e.ToFriendlyString().ToLower()).ToList();
+
+            query = query.Where(ah => ah.EducationLevel != null && (
+                allowed.Contains(ah.EducationLevel.ToLower()) || allowedFriendly.Contains(ah.EducationLevel.ToLower())
+            ));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+        {
+            var ss = filters.SchoolingStatus.Trim().ToLower();
+            query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+        }
+
+        if (filters.ResidentialStatuses != null && filters.ResidentialStatuses.Any())
+        {
+            var allowedRes = filters.ResidentialStatuses.Select(r => r.ToString().ToLower()).ToList();
+            var allowedResFriendly = filters.ResidentialStatuses.Select(r => r.ToFriendlyString().ToLower()).ToList();
+
+           query = query.Where(ah => ah.ResidentialStatus != null && (
+                allowedRes.Contains(ah.ResidentialStatus.ToLower()) || allowedResFriendly.Contains(ah.ResidentialStatus.ToLower())
+            ));
+        }
+
+        if (filters.MinBlance.HasValue)
+        {
+            var min = filters.MinBlance.Value;
+            query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
+        }
+
+        if (filters.MaxBlance.HasValue)
+        {
+            var max = filters.MaxBlance.Value;
+            query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
+        }
+
+        if (filters.MinAge.HasValue || filters.MaxAge.HasValue)
+        {
+            var today = DateTime.Today;
+
+            if (filters.MinAge.HasValue)
+            {
+                var maxDob = today.AddYears(-filters.MinAge.Value);
+                query = query.Where(ah => ah.DateOfBirth <= maxDob);
+            }
+
+            if (filters.MaxAge.HasValue)
+            {
+                var minDob = today.AddYears(-filters.MaxAge.Value);
+                query = query.Where(ah => ah.DateOfBirth >= minDob);
+            }
+        }
+
+        return query;
+    }
+
+    // Extracted sorting logic
+    private IQueryable<AccountHolder> ApplySorting(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
+    {
+        if (filters == null || !filters.SortBy.HasValue) return query;
+
+        var desc = filters.SortDescending == true;
+        switch (filters.SortBy.Value)
+        {
+            case SortBy.FullName:
+                query = desc
+                    ? query.OrderByDescending(ah => (ah.FirstName + " " + ah.LastName).ToLower())
+                    : query.OrderBy(ah => (ah.FirstName + " " + ah.LastName).ToLower());
+                break;
+            case SortBy.Age:
+                query = desc
+                    ? query.OrderBy(ah => ah.DateOfBirth)
+                    : query.OrderByDescending(ah => ah.DateOfBirth);
+                break;
+            case SortBy.Balance:
+                query = desc
+                    ? query.OrderByDescending(ah => ah.EducationAccount != null ? ah.EducationAccount.Balance : 0)
+                    : query.OrderBy(ah => ah.EducationAccount != null ? ah.EducationAccount.Balance : 0);
+                break;
+            case SortBy.EducationLevel:
+                var primaryName = EducationLevel.Primary.ToString().ToLower();
+                var secondaryName = EducationLevel.Secondary.ToString().ToLower();
+                var postSecondaryName = EducationLevel.PostSecondary.ToString().ToLower();
+                var tertiaryName = EducationLevel.Tertiary.ToString().ToLower();
+                var postGraduateName = EducationLevel.PostGraduate.ToString().ToLower();
+
+                if (desc)
+                {
+                    query = query.OrderByDescending(ah => ah.EducationLevel != null ? (
+                        ah.EducationLevel.ToLower() == primaryName || ah.EducationLevel.ToLower() == "primary" ? 0 :
+                        ah.EducationLevel.ToLower() == secondaryName || ah.EducationLevel.ToLower() == "secondary" ? 1 :
+                        (ah.EducationLevel.ToLower() == postSecondaryName || ah.EducationLevel.ToLower() == "post-secondary" || ah.EducationLevel.ToLower() == "post secondary" || ah.EducationLevel.ToLower() == "postsecondary") ? 2 :
+                        ah.EducationLevel.ToLower() == tertiaryName || ah.EducationLevel.ToLower() == "tertiary" ? 3 :
+                        (ah.EducationLevel.ToLower() == postGraduateName || ah.EducationLevel.ToLower() == "post-graduate" || ah.EducationLevel.ToLower() == "post graduate" || ah.EducationLevel.ToLower() == "postgraduate") ? 4 : 99
+                    ) : 99);
+                }
+                else
+                {
+                    query = query.OrderBy(ah => ah.EducationLevel != null ? (
+                        ah.EducationLevel.ToLower() == primaryName || ah.EducationLevel.ToLower() == "primary" ? 0 :
+                        ah.EducationLevel.ToLower() == secondaryName || ah.EducationLevel.ToLower() == "secondary" ? 1 :
+                        (ah.EducationLevel.ToLower() == postSecondaryName || ah.EducationLevel.ToLower() == "post-secondary" || ah.EducationLevel.ToLower() == "post secondary" || ah.EducationLevel.ToLower() == "postsecondary") ? 2 :
+                        ah.EducationLevel.ToLower() == tertiaryName || ah.EducationLevel.ToLower() == "tertiary" ? 3 :
+                        (ah.EducationLevel.ToLower() == postGraduateName || ah.EducationLevel.ToLower() == "post-graduate" || ah.EducationLevel.ToLower() == "post graduate" || ah.EducationLevel.ToLower() == "postgraduate") ? 4 : 99
+                    ) : 99);
+                }
+
+                break;
+            case SortBy.CreatedDate:
+                query = desc
+                    ? query.OrderByDescending(ah => ah.CreatedAt)
+                    : query.OrderBy(ah => ah.CreatedAt);
+                break;
+            default:
+                break;
+        }
+
+        return query;
     }
 
     public async Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request)
@@ -250,6 +357,7 @@ public class AccountHolderService : IAccountHolderService
                 RegisteredAddress = request.RegisteredAddress,
                 MailingAddress = request.MailingAddress,
                 SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
+                ResidentialStatus = request.ResidentialStatus,
                 CreatedAt = DateTime.UtcNow,
             };
             
@@ -280,7 +388,9 @@ public class AccountHolderService : IAccountHolderService
                 Age = DateTime.Now.Year - newAccountHolder.DateOfBirth.Year,
                 Balance = newEducationAccount.Balance,
                 EducationLevel = newAccountHolder.EducationLevel,
-                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt),
+                CreatedDate = DateOnly.FromDateTime(newAccountHolder.CreatedAt).ToString("dd/MM/yyyy"),
+                CreateTime = newAccountHolder.CreatedAt.ToString("HH:mm tt"),
+                ResidentialStatus = newAccountHolder.ResidentialStatus,
                 CourseCount = 0,
             };
         }
@@ -293,6 +403,125 @@ public class AccountHolderService : IAccountHolderService
         {
             await transaction.DisposeAsync();
         }
+    }
+
+    public async Task<BulkAccountOperationResponse> ActivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already active"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = true;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
+    }
+
+    public async Task<BulkAccountOperationResponse> DeactivateAccountsAsync(BulkAccountOperationRequest request)
+    {
+        var response = new BulkAccountOperationResponse
+        {
+            TotalProcessed = request.AccountIds.Count
+        };
+
+        var educationAccountRepo = _unitOfWork.GetRepository<EducationAccount>();
+
+        foreach (var accountId in request.AccountIds)
+        {
+            try
+            {
+                var educationAccount = await educationAccountRepo.GetByIdAsync(accountId);
+
+                if (educationAccount == null)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Education account not found"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                if (!educationAccount.IsActive)
+                {
+                    response.FailedOperations.Add(new FailedAccountOperation
+                    {
+                        AccountId = accountId,
+                        Reason = "Account is already inactive"
+                    });
+                    response.FailedCount++;
+                    continue;
+                }
+
+                educationAccount.IsActive = false;
+                educationAccount.ClosedDate = DateTime.UtcNow;
+                educationAccount.UpdatedAt = DateTime.UtcNow;
+                
+                await educationAccountRepo.UpdateAsync(educationAccount);
+                response.SuccessfulIds.Add(accountId);
+                response.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                response.FailedOperations.Add(new FailedAccountOperation
+                {
+                    AccountId = accountId,
+                    Reason = $"Error: {ex.Message}"
+                });
+                response.FailedCount++;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
+        return response;
     }
 
 }

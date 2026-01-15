@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 
 namespace MOE_System.EService.Application.Common.Interfaces
 {

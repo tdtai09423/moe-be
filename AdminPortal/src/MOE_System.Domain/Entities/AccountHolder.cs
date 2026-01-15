@@ -18,6 +18,8 @@ public class AccountHolder : BaseEntity
     public string ContLearningStatus { get; set; } = string.Empty;
     public string EducationLevel { get; set; } = string.Empty;
     public string SchoolingStatus { get; set; } = string.Empty;
+    public string ResidentialStatus { get; set; } = string.Empty;
+
 
     // Navigation property (1-to-1)                                            
     public EducationAccount? EducationAccount { get; set; }
@@ -28,4 +30,5 @@ public class AccountHolder : BaseEntity
 
         return reachedDate <= onDate;
     }
+    public string FullName => $"{FirstName} {LastName}";
 }

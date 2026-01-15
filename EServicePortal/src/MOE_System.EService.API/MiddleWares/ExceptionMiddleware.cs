@@ -1,4 +1,4 @@
-using MOE_System.Domain.Common;
+using MOE_System.EService.Domain.Common;
 using System.Text.Json;
 
 namespace MOE_System.EService.API.MiddleWares

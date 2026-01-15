@@ -95,6 +95,10 @@ namespace MOE_System.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ResidentialStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SchoolingStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -218,6 +222,13 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.Property<decimal>("FeeAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("FeePerCycle")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("LearningType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentType")
                         .IsRequired()
@@ -495,11 +506,21 @@ namespace MOE_System.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("RuleTargetType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TargetEducationAccountId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("TopupAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TargetEducationAccountId");
 
                     b.ToTable("TopupRules");
                 });
@@ -625,6 +646,16 @@ namespace MOE_System.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Enrollment");
+                });
+
+            modelBuilder.Entity("MOE_System.Domain.Entities.TopupRule", b =>
+                {
+                    b.HasOne("MOE_System.Domain.Entities.EducationAccount", "TargetEducationAccount")
+                        .WithMany()
+                        .HasForeignKey("TargetEducationAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("TargetEducationAccount");
                 });
 
             modelBuilder.Entity("MOE_System.Domain.Entities.Transaction", b =>
