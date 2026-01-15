@@ -5,5 +5,6 @@ public sealed record ScheduledTopUpResponse
     string Name,
     decimal TopUpAmount,
     DateTime ScheduledTime,
-    string Status
+    string Status,
+    int? NumberOfAccountsAffected
 );

@@ -662,7 +662,8 @@ public class DatabaseSeeder
                 EduLevelCond = "Any",
                 TopupAmount = 1000.00m,
                 RuleTargetType = "batch",
-                TargetEducationAccountId = null
+                TargetEducationAccountId = null,
+                NumberOfAccountsAffected = 125
             },
             new TopupRule
             {
@@ -684,7 +685,8 @@ public class DatabaseSeeder
                 EduLevelCond = "Any",
                 TopupAmount = 600.00m,
                 RuleTargetType = "batch",
-                TargetEducationAccountId = null
+                TargetEducationAccountId = null,
+                NumberOfAccountsAffected = 87
             }
         };
 
