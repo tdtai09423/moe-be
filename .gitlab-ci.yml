@@ -16,7 +16,7 @@ include:
 
 default:
   tags:
-    - VNHCMKainVM
+    - moe-kain
 
 # ==================== ADMIN PORTAL ====================
 
