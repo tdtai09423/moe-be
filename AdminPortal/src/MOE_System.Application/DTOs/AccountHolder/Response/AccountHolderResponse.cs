@@ -9,7 +9,7 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
         public decimal Balance { get; set; }
         public string EducationLevel { get; set; } = string.Empty;
         public string ResidentialStatus { get; set; } = string.Empty;
-        public DateOnly CreatedDate { get; set; }
+        public string CreatedDate { get; set; } = string.Empty;
         public string CreateTime { get; set; } = string.Empty;
         public int CourseCount { get; set; }
 

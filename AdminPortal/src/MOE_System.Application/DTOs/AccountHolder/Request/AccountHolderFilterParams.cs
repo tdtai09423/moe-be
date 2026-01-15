@@ -13,6 +13,7 @@ public class AccountHolderFilterParams
     public decimal? MaxBlance { get; set; }
     public int? MinAge { get; set; }
     public int? MaxAge { get; set; }
+    public bool IsActive { get; set; } = true;
     // Sorting
     public SortBy? SortBy { get; set; }
     public bool? SortDescending { get; set; }

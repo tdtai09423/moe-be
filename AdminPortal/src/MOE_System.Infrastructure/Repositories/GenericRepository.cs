@@ -51,7 +51,7 @@ namespace MOE_System.Infrastructure.Repositories
             return await query.GetPaginatedList(index, pageSize);
         }
 
-        public void Insert(T obj)
+        public void Insert(T obj)   
         {
             _dbSet.Add(obj);
         }
@@ -124,6 +124,18 @@ namespace MOE_System.Infrastructure.Repositories
                 query = query.Take(take);
             }
             return query.ToListAsync(cancellationToken);
+        }
+
+        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return query.FirstOrDefaultAsync(predicate, cancellationToken);
         }
     }
 }
