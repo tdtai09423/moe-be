@@ -174,7 +174,7 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Enrollment)
                 .WithMany(e => e.Invoices)
                 .HasForeignKey(e => e.EnrollmentID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Transaction
@@ -186,11 +186,11 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.BalanceAfter).HasPrecision(18, 2);
             entity.Property(e => e.PaymentMethod).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-            
+
             entity.HasOne(e => e.Invoice)
                 .WithMany(e => e.Transactions)
                 .HasForeignKey(e => e.InvoiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

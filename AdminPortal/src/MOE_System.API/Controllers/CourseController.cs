@@ -58,11 +58,11 @@ namespace MOE_System.API.Controllers
             return Success("Accounts enrolled successfully");
         }
 
-       /* [HttpDelete("bulk-remove")]
+        [HttpDelete("bulk-remove")]
         public async Task<ActionResult<ApiResponse>> BulkRemoveEnrolledAccount([FromBody] BulkRemoveEnrolledAccountRequest request)
         {
             await _courseService.BulkRemoveEnrolledAccountAsync(request);
             return Success("Accounts removed successfully");
-        }*/
+        }
     }
 }

@@ -332,7 +332,7 @@ namespace MOE_System.Application.Services
 
         public async Task BulkRemoveEnrolledAccountAsync(BulkRemoveEnrolledAccountRequest request)
         {
-            /*var enrollRepo = _unitOfWork.GetRepository<Enrollment>();
+            var enrollRepo = _unitOfWork.GetRepository<Enrollment>();
 
             if (string.IsNullOrWhiteSpace(request.CourseId))
                 throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
@@ -346,7 +346,7 @@ namespace MOE_System.Application.Services
 
             await enrollRepo.Entities
                 .Where(e => e.CourseId == request.CourseId && request.EducationAccountIds.Contains(e.EducationAccountId))
-                .ExecuteDeleteAsync();*/
+                .ExecuteDeleteAsync();
         }
 
         public async Task BulkEnrollAccountAsync(BulkEnrollAccountAsync request)
