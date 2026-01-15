@@ -62,7 +62,7 @@ namespace MOE_System.Application.Services
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var keyword = request.SearchTerm.Trim();
-                predicate = predicate.And(x => x.CourseName.Contains(keyword) || x.CourseCode.Contains(keyword));
+                predicate = predicate.And(x => x.CourseName.Contains(keyword) || x.CourseCode.Contains(keyword) || x.Provider!.Name.Contains(keyword));
             }
 
             if (request.Provider != null && request.Provider.Count > 0)
