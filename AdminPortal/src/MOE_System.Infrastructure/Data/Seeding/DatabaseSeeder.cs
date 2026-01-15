@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MOE_System.Domain.Entities;
+using MOE_System.Domain.Enums;
 
 namespace MOE_System.Infrastructure.Data.Seeding;
 
@@ -816,8 +817,9 @@ public class DatabaseSeeder
         var providersData = ProviderSeedData.GetProviders();
         var providers = providersData.Select(kvp => new Provider
         {
-            Id = kvp.Key,
-            Name = kvp.Value
+            Id = kvp.Code,
+            Name = kvp.Name,
+            EducationLevel = kvp.Level.ToFriendlyString()
         }).ToList();
 
         await _context.Providers.AddRangeAsync(providers);

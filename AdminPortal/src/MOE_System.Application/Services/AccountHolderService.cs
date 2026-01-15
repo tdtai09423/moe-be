@@ -370,7 +370,6 @@ public class AccountHolderService : IAccountHolderService
                 DateOfBirth = request.DateOfBirth,
                 Email = request.Email,
                 ContactNumber = request.ContactNumber,
-                EducationLevel = request.EducationLevel,
                 RegisteredAddress = request.RegisteredAddress,
                 MailingAddress = request.MailingAddress,
                 SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
