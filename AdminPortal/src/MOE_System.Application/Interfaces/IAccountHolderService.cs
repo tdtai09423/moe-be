@@ -12,6 +12,7 @@ public interface IAccountHolderService
     Task<AccountHolderDetailResponse> GetAccountHolderDetailAsync(string accountHolderId);
     Task<ResidentInfoResponse> GetResidentAccountHolderByNRICAsync(string nric);
     Task<AccountHolderResponse> AddAccountHolderAsync(CreateAccountHolderRequest request);
+    Task UpdateAccountHolderAsync(EditAccountHolderRequest  request);
     Task<BulkAccountOperationResponse> ActivateAccountsAsync(BulkAccountOperationRequest request);
     Task<BulkAccountOperationResponse> DeactivateAccountsAsync(BulkAccountOperationRequest request);
 }

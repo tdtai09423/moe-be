@@ -537,4 +537,25 @@ public class AccountHolderService : IAccountHolderService
         return response;
     }
 
+    public async Task UpdateAccountHolderAsync(EditAccountHolderRequest request)
+    {
+        var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
+
+        var existingAccountHolder = accountHolderRepo.Entities
+            .FirstOrDefault(ah => ah.Id == request.AccountHolderId);
+
+        if (existingAccountHolder == null)
+        {
+            throw new NotFoundException("ACCOUNT_HOLDER_NOT_FOUND", $"Account holder with ID {request.AccountHolderId} not found.");
+        }
+
+        existingAccountHolder.Email = request.Email;
+        existingAccountHolder.ContactNumber = request.PhoneNumber;
+        existingAccountHolder.RegisteredAddress = request.RegisteredAddress;
+        existingAccountHolder.MailingAddress = request.MailingAddress;
+        existingAccountHolder.UpdatedAt = DateTime.UtcNow;
+
+        await accountHolderRepo.UpdateAsync(existingAccountHolder);
+        await _unitOfWork.SaveAsync();
+    }
 }

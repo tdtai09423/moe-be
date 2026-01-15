@@ -24,6 +24,13 @@ namespace MOE_System.API.Controllers
             return Success(newAccountHolder, "Account holder created successfully");
         }
 
+        [HttpPut]
+        public async Task<ActionResult<ApiResponse>> UpdateAccountHolder(EditAccountHolderRequest request)
+        {
+            await _accountHolderService.UpdateAccountHolderAsync(request);
+            return Success("Account holder updated successfully");
+        }
+
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<PaginatedList<AccountHolderResponse>>), StatusCodes.Status200OK)]
         public async Task<ActionResult<ApiResponse<PaginatedList<AccountHolderResponse>>>> GetAccountHolders(
