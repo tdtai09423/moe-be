@@ -24,14 +24,25 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddSwaggerConfiguration();
 
 // Add CORS
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddPolicy("AllowSpecificOrigins",
         policy =>
         {
-            policy.AllowAnyOrigin()   // Allow to all resources (React, Vue, Swagger...)
-                  .AllowAnyMethod()   // Allow GET, POST, PUT, DELETE...
-                  .AllowAnyHeader();  // All all Headers
+            if (allowedOrigins.Contains("*"))
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            }
+            else
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
         });
 });
 
@@ -46,7 +57,7 @@ app.UseExceptionMiddleware();
 // Configure the HTTP request pipeline.
 app.UseSwaggerConfiguration(app.Environment);
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigins");
 
 app.UseHttpsRedirection();
 
