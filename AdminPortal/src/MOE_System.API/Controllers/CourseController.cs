@@ -23,6 +23,13 @@ namespace MOE_System.API.Controllers
             return Ok(courses);
         }
 
+        [HttpGet("{courseCode}")]
+        public async Task<IActionResult> GetCourseDetail(string courseCode, CancellationToken cancellationToken)
+        {
+            var courseDetail = await _courseService.GetCourseDetailAsync(courseCode, cancellationToken);
+            return Ok(courseDetail);
+        }
+
         /// <summary>
         /// Add a new course to the system
         /// </summary>
