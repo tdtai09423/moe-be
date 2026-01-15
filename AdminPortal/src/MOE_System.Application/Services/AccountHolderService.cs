@@ -50,14 +50,14 @@ public class AccountHolderService : IAccountHolderService
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
         
-        var accountHolder = await accountHolderRepo.Entities.Include(ah => ah.EducationAccount!)
-            .ThenInclude(ea => ea.Enrollments)
-                .ThenInclude(en => en.Course!)
-                    .ThenInclude(c => c.Provider)
+        var accountHolder = await accountHolderRepo.Entities
+            .Include(ah => ah.EducationAccount!)
+                .ThenInclude(ea => ea.Enrollments)
+                    .ThenInclude(en => en.Course!)
+                        .ThenInclude(c => c.Provider)
             .Include(ah => ah.EducationAccount!)
                 .ThenInclude(ea => ea.Enrollments)
                     .ThenInclude(en => en.Invoices)
-                        .ThenInclude(i => i.Transactions)
             .Include(ah => ah.EducationAccount!)
                 .ThenInclude(ea => ea.HistoryOfChanges)
             .FirstOrDefaultAsync(ah => ah.Id == accountHolderId);
@@ -119,7 +119,7 @@ public class AccountHolderService : IAccountHolderService
                         ProviderName = e.Course?.Provider?.Name ?? string.Empty,
                         OutstandingAmount = i.Amount,
                         DueDate = i.DueDate.ToString("dd/MM/yyyy"),
-                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 5).ToString("dd/MM/yyyy")
+                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 1).AddDays(4).ToString("dd/MM/yyyy")
                     }))
                 .ToList() ?? new List<OutstandingFeeInfo>(),
 
