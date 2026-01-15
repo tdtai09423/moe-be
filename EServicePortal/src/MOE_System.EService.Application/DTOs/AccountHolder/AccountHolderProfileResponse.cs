@@ -1,4 +1,4 @@
-namespace MOE_System.EService.Application.DTOs;
+namespace MOE_System.EService.Application.DTOs.AccountHolder;
 
 public class AccountHolderProfileResponse
 {
