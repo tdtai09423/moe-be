@@ -28,6 +28,7 @@ namespace MOE_System.Application.Services
             var predicate = BuildFilterPredicate(request);
 
             IQueryable<Course> query = courseRepo.Entities.AsNoTracking()
+                .Include(c => c.Provider)
                 .Where(predicate.Expand());
 
             query = ApplySorting(query, request.SortBy, request.SortDirection);
@@ -56,35 +57,29 @@ namespace MOE_System.Application.Services
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var keyword = request.SearchTerm.Trim();
-                predicate = predicate.And(x => x.CourseName.Contains(keyword) || (x.Provider != null && x.Provider.Name.Contains(keyword)));
+                predicate = predicate.And(x => x.CourseName.Contains(keyword) || x.CourseCode.Contains(keyword));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Provider))
-                predicate = predicate.And(x => x.Provider != null && x.Provider.Name == request.Provider);
+            if (request.Provider != null && request.Provider.Count > 0)
+                predicate = predicate.And(x => x.Provider != null && request.Provider.Contains(x.Provider.Name));
 
-            if (!string.IsNullOrWhiteSpace(request.ModeOfTraining))
-                predicate = predicate.And(x => x.LearningType == request.ModeOfTraining);
+            if (request.ModeOfTraining != null && request.ModeOfTraining.Count > 0)
+                predicate = predicate.And(x => request.ModeOfTraining.Contains(x.LearningType));
 
-            if (!string.IsNullOrWhiteSpace(request.Status))
-                predicate = predicate.And(x => x.Status == request.Status);
+            if (request.Status != null && request.Status.Count > 0)
+                predicate = predicate.And(x => request.Status.Contains(x.Status));
 
-            if (!string.IsNullOrWhiteSpace(request.PaymentType))
-                predicate = predicate.And(x => x.PaymentType == request.PaymentType);
+            if (request.PaymentType != null && request.PaymentType.Count > 0)
+                predicate = predicate.And(x => request.PaymentType.Contains(x.PaymentType));
 
-            if (!string.IsNullOrWhiteSpace(request.BillingCycle))
-                predicate = predicate.And(x => x.BillingCycle == request.BillingCycle);
+            if (request.BillingCycle != null && request.BillingCycle.Count > 0)
+                predicate = predicate.And(x => x.BillingCycle != null && request.BillingCycle.Contains(x.BillingCycle));
 
-            if (request.StartDateFrom.HasValue)
-                predicate = predicate.And(x => x.StartDate >= request.StartDateFrom.Value);
+            if (request.StartDate.HasValue)
+                predicate = predicate.And(x => x.StartDate >= request.StartDate.Value.ToDateTime(TimeOnly.MinValue));
 
-            if (request.StartDateTo.HasValue)
-                predicate = predicate.And(x => x.StartDate <= request.StartDateTo.Value);
-
-            if (request.EndDateFrom.HasValue)
-                predicate = predicate.And(x => x.EndDate >= request.EndDateFrom.Value);
-
-            if (request.EndDateTo.HasValue)
-                predicate = predicate.And(x => x.EndDate <= request.EndDateTo.Value);
+            if (request.EndDate.HasValue)
+                predicate = predicate.And(x => x.EndDate <= request.EndDate.Value.ToDateTime(TimeOnly.MinValue));
 
             if (request.TotalFeeMin.HasValue)
                 predicate = predicate.And(x => x.FeeAmount >= request.TotalFeeMin.Value);
