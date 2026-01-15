@@ -424,7 +424,7 @@ public class DatabaseSeeder
                 EnrollmentID = "enroll-001",
                 Amount = 500.00m,
                 DueDate = new DateTime(2026, 3, 15),
-                Status = "Pending"
+                Status = "Outstanding"
             },
             new Invoice
             {
@@ -440,7 +440,7 @@ public class DatabaseSeeder
                 EnrollmentID = "enroll-003",
                 Amount = 1200.00m,
                 DueDate = new DateTime(2026, 3, 1),
-                Status = "Pending"
+                Status = "Outstanding"
             },
             new Invoice
             {
@@ -456,7 +456,23 @@ public class DatabaseSeeder
                 EnrollmentID = "enroll-005",
                 Amount = 600.00m,
                 DueDate = new DateTime(2026, 3, 1),
-                Status = "Overdue"
+                Status = "Outstanding"
+            },
+            new Invoice
+            {
+                Id = "inv-007",
+                EnrollmentID = "enroll-001",
+                Amount = 500.00m,
+                DueDate = new DateTime(2026, 4, 15),
+                Status = "Outstanding"
+            },
+            new Invoice
+            {
+                Id = "inv-008",
+                EnrollmentID = "enroll-002",
+                Amount = 416.67m,
+                DueDate = new DateTime(2026, 3, 15),
+                Status = "Outstanding"
             }
         };
 
@@ -522,8 +538,8 @@ public class DatabaseSeeder
                 Id = "hist-001",
                 EducationAccountId = "edu-001",
                 Amount = 5000.00m,
-                Type = "Initial Topup",
-                CreatedAt = new DateTime(2026, 1, 1)
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 1, 9, 30, 0)
             },
             new HistoryOfChange
             {
@@ -531,15 +547,15 @@ public class DatabaseSeeder
                 EducationAccountId = "edu-001",
                 Amount = -500.00m,
                 Type = "Course Payment",
-                CreatedAt = new DateTime(2026, 2, 10)
+                CreatedAt = new DateTime(2026, 2, 10, 14, 15, 0)
             },
             new HistoryOfChange
             {
                 Id = "hist-003",
                 EducationAccountId = "edu-002",
                 Amount = 3500.00m,
-                Type = "Initial Topup",
-                CreatedAt = new DateTime(2026, 1, 1)
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 1, 10, 0, 0)
             },
             new HistoryOfChange
             {
@@ -547,23 +563,23 @@ public class DatabaseSeeder
                 EducationAccountId = "edu-002",
                 Amount = -416.67m,
                 Type = "Course Payment",
-                CreatedAt = new DateTime(2026, 2, 12)
+                CreatedAt = new DateTime(2026, 2, 12, 16, 20, 0)
             },
             new HistoryOfChange
             {
                 Id = "hist-005",
                 EducationAccountId = "edu-003",
                 Amount = 2000.00m,
-                Type = "Initial Topup",
-                CreatedAt = new DateTime(2026, 1, 1)
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 1, 11, 45, 0)
             },
             new HistoryOfChange
             {
                 Id = "hist-006",
                 EducationAccountId = "edu-004",
                 Amount = 4200.00m,
-                Type = "Initial Topup",
-                CreatedAt = new DateTime(2026, 1, 1)
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 1, 13, 0, 0)
             },
             new HistoryOfChange
             {
@@ -571,15 +587,47 @@ public class DatabaseSeeder
                 EducationAccountId = "edu-004",
                 Amount = -750.00m,
                 Type = "Course Payment",
-                CreatedAt = new DateTime(2026, 2, 28)
+                CreatedAt = new DateTime(2026, 2, 28, 10, 30, 0)
             },
             new HistoryOfChange
             {
                 Id = "hist-008",
                 EducationAccountId = "edu-005",
                 Amount = 6000.00m,
-                Type = "Initial Topup",
-                CreatedAt = new DateTime(2026, 1, 1)
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 1, 15, 30, 0)
+            },
+            new HistoryOfChange
+            {
+                Id = "hist-009",
+                EducationAccountId = "edu-001",
+                Amount = 1000.00m,
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 15, 9, 0, 0)
+            },
+            new HistoryOfChange
+            {
+                Id = "hist-010",
+                EducationAccountId = "edu-002",
+                Amount = 500.00m,
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 1, 20, 14, 30, 0)
+            },
+            new HistoryOfChange
+            {
+                Id = "hist-011",
+                EducationAccountId = "edu-003",
+                Amount = 750.00m,
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 2, 5, 11, 15, 0)
+            },
+            new HistoryOfChange
+            {
+                Id = "hist-012",
+                EducationAccountId = "edu-001",
+                Amount = 2000.00m,
+                Type = "TopUp",
+                CreatedAt = new DateTime(2026, 2, 20, 16, 45, 0)
             }
         };
 

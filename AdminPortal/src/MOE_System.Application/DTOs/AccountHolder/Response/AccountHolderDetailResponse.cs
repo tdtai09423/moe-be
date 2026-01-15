@@ -32,6 +32,7 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
     public class EnrolledCourseInfo
     {
         public string CourseName { get; set; } = string.Empty;
+        public string ProviderName { get; set; } = string.Empty;
         public string BillingCycle { get; set; } = string.Empty;
         public decimal TotalFree { get; set; }
         public string EnrollmentDate { get; set; } = string.Empty;
@@ -43,6 +44,7 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
     public class OutstandingFeeInfo
     {
         public string CourseName { get; set; } = string.Empty;
+        public string ProviderName { get; set; } = string.Empty;
         public decimal OutstandingAmount { get; set; }
         public string BillingDate { get; set; } = string.Empty;
         public string DueDate { get; set; } = string.Empty;
@@ -50,7 +52,8 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
     
     public class TopUpHistoryInfo
     {
-        public DateTime TopUpTime { get; set; }
+        public string TopUpDate { get; set; } = string.Empty;
+        public string TopUpTime { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string Reference { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -59,6 +62,7 @@ namespace MOE_System.Application.DTOs.AccountHolder.Response
     public class PaymentHistoryInfo
     {
         public string CourseName { get; set; } = string.Empty;
+        public string ProviderName { get; set; } = string.Empty;
         public decimal AmountPaid { get; set; }
         public string PaymentDate { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;

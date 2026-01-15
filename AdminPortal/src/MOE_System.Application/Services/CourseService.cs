@@ -31,6 +31,7 @@ namespace MOE_System.Application.Services
 
             IQueryable<Course> query = courseRepo.Entities.AsNoTracking()
                 .Include(c => c.Provider)
+                .Include(c => c.Enrollments)
                 .Where(predicate.Expand());
 
             query = ApplySorting(query, request.SortBy, request.SortDirection);
@@ -38,6 +39,7 @@ namespace MOE_System.Application.Services
             var pagedCourses = await courseRepo.GetPagging(query, request.PageNumber, request.PageSize);
 
             var responses = pagedCourses.Items.Select(c => new CourseListResponse(
+                c.Id,
                 c.CourseCode,
                 c.CourseName,
                 c.Provider != null ? c.Provider.Name : string.Empty,
@@ -45,6 +47,7 @@ namespace MOE_System.Application.Services
                 c.StartDate,
                 c.EndDate,
                 c.PaymentType,
+                c.BillingCycle!,
                 c.FeeAmount,
                 c.Enrollments.Count
             )).ToList();

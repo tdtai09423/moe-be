@@ -4,6 +4,7 @@ namespace MOE_System.Application.DTOs.Course.Response;
 
 public sealed record CourseListResponse
 (
+    string CourseId,
     string CourseCode,
     string CourseName,
     string ProviderName,
@@ -11,6 +12,7 @@ public sealed record CourseListResponse
     DateTime StartDate,
     DateTime EndDate,
     string PaymentType,
+    string BillingCycle,
     decimal TotalFee,
     int EnrolledCount
 );
