@@ -39,6 +39,7 @@ namespace MOE_System.Application.Services
             var pagedCourses = await courseRepo.GetPagging(query, request.PageNumber, request.PageSize);
 
             var responses = pagedCourses.Items.Select(c => new CourseListResponse(
+                c.Id,
                 c.CourseCode,
                 c.CourseName,
                 c.Provider != null ? c.Provider.Name : string.Empty,
