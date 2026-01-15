@@ -216,10 +216,15 @@ public class AccountHolderService : IAccountHolderService
             ));
         }
 
-        if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+        if (filters.SchoolingStatus != null)
         {
-            var ss = filters.SchoolingStatus.Trim().ToLower();
-            query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+            var statusRaw = filters.SchoolingStatus.Value.ToFriendlyString();
+            var statusNormalized = statusRaw.ToLower().Replace(" ", "").Replace("-", "");
+
+            query = query.Where(ah => ah.SchoolingStatus != null &&
+                                      ah.SchoolingStatus.ToLower()
+                                                        .Replace(" ", "")
+                                                        .Replace("-", "") == statusNormalized);
         }
 
         if (filters.ResidentialStatuses != null && filters.ResidentialStatuses.Any())

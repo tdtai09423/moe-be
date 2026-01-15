@@ -7,7 +7,7 @@ public class AccountHolderFilterParams
 {
     public string? Search { get; set; }
     public List<EducationLevel>? EducationLevels { get; set; }
-    public string? SchoolingStatus { get; set; }
+    public SchoolingStatus? SchoolingStatus { get; set; }
     public List<ResidentialStatus>? ResidentialStatuses { get; set; }
     public decimal? MinBalance { get; set; }
     public decimal? MaxBalance { get; set; }
