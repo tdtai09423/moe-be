@@ -81,6 +81,7 @@ namespace MOE_System.EService.Application.Services
                 AccountCreated = accountHolder.EducationAccount?.CreatedAt ?? accountHolder.CreatedAt,
                 SchoolingStatus = accountHolder.SchoolingStatus,
                 EducationLevel = accountHolder.EducationLevel,
+                ResidentialStatus = accountHolder.ResidentialStatus,
                 EmailAddress = accountHolder.Email,
                 PhoneNumber = accountHolder.ContactNumber,
                 RegisteredAddress = accountHolder.RegisteredAddress,

@@ -8,6 +8,7 @@ public class AccountHolderProfileResponse
     public DateTime AccountCreated { get; set; }
     public string SchoolingStatus { get; set; } = string.Empty;
     public string EducationLevel { get; set; } = string.Empty;
+    public string ResidentialStatus { get; set; } = string.Empty;
     public string EmailAddress { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string RegisteredAddress { get; set; } = string.Empty;
