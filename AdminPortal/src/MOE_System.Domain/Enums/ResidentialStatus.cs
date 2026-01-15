@@ -8,7 +8,7 @@ namespace MOE_System.Domain.Enums
     {
         SingaporeCitizen = 0,
         PermanentResident = 1,
-        NonCitizen = 2
+        NonResident = 2
     }
 
     public static class ResidentialExtensions
@@ -19,7 +19,7 @@ namespace MOE_System.Domain.Enums
             {
                 ResidentialStatus.SingaporeCitizen => "Singapore Citizen",
                 ResidentialStatus.PermanentResident => "Permanent Resident",
-                ResidentialStatus.NonCitizen => "Non-Citizen",
+                ResidentialStatus.NonResident => "Non-Resident",
                 _ => "Unknown",
             };
         }

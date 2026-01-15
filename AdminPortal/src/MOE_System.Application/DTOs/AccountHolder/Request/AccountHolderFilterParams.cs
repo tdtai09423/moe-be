@@ -9,8 +9,8 @@ public class AccountHolderFilterParams
     public List<EducationLevel>? EducationLevels { get; set; }
     public string? SchoolingStatus { get; set; }
     public List<ResidentialStatus>? ResidentialStatuses { get; set; }
-    public decimal? MinBlance { get; set; }
-    public decimal? MaxBlance { get; set; }
+    public decimal? MinBalance { get; set; }
+    public decimal? MaxBalance { get; set; }
     public int? MinAge { get; set; }
     public int? MaxAge { get; set; }
     public bool IsActive { get; set; } = true;
