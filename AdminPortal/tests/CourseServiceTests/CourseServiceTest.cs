@@ -819,6 +819,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -907,6 +908,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -986,6 +988,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -1023,6 +1026,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -1058,6 +1062,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -1078,6 +1083,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync((Course?)null);
 
@@ -1124,6 +1130,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -1170,6 +1177,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
@@ -1230,6 +1238,7 @@ public class CourseServiceTest
         _courseRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
             It.IsAny<System.Linq.Expressions.Expression<Func<Course, bool>>>(),
             It.IsAny<Func<IQueryable<Course>, IQueryable<Course>>>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(mockCourse);
 
