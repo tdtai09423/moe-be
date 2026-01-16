@@ -365,6 +365,21 @@ namespace MOE_System.Application.Services
             if (request.AccountIds == null || request.AccountIds.Count == 0)
                 return;
 
+            
+
+            var courseRepo = _unitOfWork.GetRepository<Course>();
+
+            var course = await courseRepo.Entities
+                .Include(c => c.Provider)
+                .FirstOrDefaultAsync(c => c.Id == request.CourseId);
+
+            if (course == null)
+            {
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+            }
+
+            var providerEducationLevel = course.Provider?.EducationLevel;
+
             var enrollmentRepo = _unitOfWork.GetRepository<Enrollment>();
 
             var existingEnrollments = await enrollmentRepo.ToListAsync(
@@ -380,24 +395,36 @@ namespace MOE_System.Application.Services
                 return;
 
             var accountRepo = _unitOfWork.GetRepository<EducationAccount>();
-            var existingAccounts = await accountRepo.ToListAsync(
-                predicate: a => candidateStudentIds.Contains(a.Id)
-            );
 
-            var validStudentIds = candidateStudentIds
-                .Where(id => existingAccounts.Any(a => a.Id == id))
-                .ToList();
+            var existingAccounts = await accountRepo.Entities.Where(ac => candidateStudentIds.Contains(ac.Id))
+                .Include(ac => ac.AccountHolder)
+                .ToListAsync();
+
+            var validStudentIds = new List<string>();
+
+            foreach (var account in existingAccounts)
+            {
+                validStudentIds.Add(account.Id);
+
+                if (!string.IsNullOrEmpty(providerEducationLevel))
+                {
+                    account.AccountHolder?.EducationLevel = providerEducationLevel;
+
+                    accountRepo.Update(account);
+                }
+            }
 
             if (!validStudentIds.Any())
                 return;
 
-            var newEnrollments = validStudentIds.Select(studentId => new Enrollment
+            var newEnrollments = validStudentIds.Select(educationId => new Enrollment
             {
                 CourseId = request.CourseId,
-                EducationAccountId = studentId,
+                EducationAccountId = educationId,
                 EnrollDate = DateTime.UtcNow,
                 Status = "Active"
             }).ToList();
+
 
             await enrollmentRepo.InsertRangeAsync(newEnrollments);
             await _unitOfWork.SaveAsync();
