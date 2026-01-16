@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MOE_System.EService.Application.Common;
 using MOE_System.EService.Application.DTOs;
+using MOE_System.EService.Application.DTOs.AccountHolder;
 using MOE_System.EService.Application.Interfaces.Services;
 using System.Security.Claims;
 
@@ -10,7 +11,7 @@ namespace MOE_System.EService.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/account-holders")]
-public class AccountHolderController : ControllerBase
+public class AccountHolderController : BaseApiController
 {
     private readonly IAccountHolderService _accountHolderService;
     private readonly IEnrollmentService _enrollmentService;
@@ -55,6 +56,18 @@ public class AccountHolderController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("me/your-courses")]
+    public async Task<ActionResult<ApiResponse<YourCourseResponse>>> GetYourCourses()
+    {
+        var accountHolderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(accountHolderId))
+        {
+            return Unauthorized("Invalid or missing authentication token");
+        }
+        var yourCourseResponse = await _accountHolderService.GetYourCoursesAsync(accountHolderId);
+        return Success(yourCourseResponse, "Get Account's dashboard information successfully");
+    }
+
     [HttpGet("{accountHolderId}")]
     [AllowAnonymous]
     public async Task<ActionResult<AccountHolderResponse>> GetAccountHolder([FromRoute] string accountHolderId)
@@ -71,4 +84,5 @@ public class AccountHolderController : ControllerBase
         var pagedResultResponse = await _enrollmentService.GetActiveCoursesAsync(accountHolderId, pageIndex, pageSize);
         return Ok(pagedResultResponse);
     }
+    
 }
