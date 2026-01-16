@@ -62,6 +62,7 @@ public class DashboardService : IDashboardService
             }
 
             return new ScheduledTopUpResponse(
+                x.TopupRule!.Id.ToString(),
                 name,
                 x.TopupRule.TopupAmount,
                 x.BatchExecution!.ScheduledTime,
