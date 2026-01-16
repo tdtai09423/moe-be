@@ -104,12 +104,11 @@ public class AccountHolderService : IAccountHolderService
                     EnrollmentDate = e.EnrollDate.ToString("dd/MM/yyyy"),
                     CollectedFee = e.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0,
                     NextPaymentDue = e.Invoices?
-                        .Where(i => i.Status == "Outstanding")
+                        .Where(i => i.Status != "Outstanding")
                         .OrderBy(i => i.DueDate)
-                        .Select(i => i.DueDate.ToString("dd/mm/yyyy"))
+                        .Select(i => i.DueDate.ToString("dd/MM/yyyy"))
                         .FirstOrDefault() ?? "N/A",
-                    PaymentStatus = e.Invoices != null && e.Invoices.Any(i => i.Status == "Outstanding") ? "Pending" : "Up to Date"
-
+                    PaymentStatus = GetPaymentStatus(e)
                 }).ToList() ?? new List<EnrolledCourseInfo>(),
 
             OutstandingFeesDetails = accountHolder.EducationAccount?.Enrollments?
@@ -154,6 +153,35 @@ public class AccountHolderService : IAccountHolderService
         };
 
         return accountHolderDetailResponse;
+    }
+
+    private string GetPaymentStatus(Enrollment enrollment)
+    {
+        var totalFee = enrollment.Course?.FeeAmount ?? 0;
+        var collectedFee = enrollment.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0;
+        
+        // Outstanding: has invoices with Outstanding status (not paid yet)
+        var hasOutstanding = enrollment.Invoices?.Any(i => i.Status == "Outstanding") ?? false;
+        if (hasOutstanding)
+        {
+            return "Outstanding";
+        }
+        
+        // Scheduled: paid current invoices and waiting for next billing cycle
+        // This applies when there are paid invoices but the course is ongoing
+        if (collectedFee > 0 && collectedFee < totalFee)
+        {
+            return "Scheduled";
+        }
+        
+        // Fully Paid: all invoices paid and collected >= total fee
+        if (collectedFee >= totalFee)
+        {
+            return "Fully Paid";
+        }
+        
+        // Default to Scheduled if enrolled but no payments yet
+        return "Scheduled";
     }
 
     public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null)
