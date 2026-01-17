@@ -4,11 +4,13 @@ variables:
   AZURE_APP_NAME: "moe-admin"
   AZURE_APP_NAME_E_SERVICE: "moe-e-service"
   RESOURCE_GROUP: "moe-system-test"
+  GITHUB_REPO_BE_HTTPS: "github.com/tdtai09423/moe-be.git"
 
 stages:
   - build
   - test
   - secret-detection
+  - sync_to_github
   - deploy
 
 include:
@@ -18,7 +20,7 @@ default:
   tags:
     - moe-kain
 
-# ==================== ADMIN PORTAL ====================
+# ==================== BUILD & TEST STAGES ====================
 
 secret_detection:
   stage: secret-detection
@@ -48,8 +50,6 @@ build_admin:
       - admin_publish/
     expire_in: 1 hour
 
-# ==================== ESERVICE PORTAL ====================
-
 build_eservice:
   stage: build
   script:
@@ -62,34 +62,39 @@ build_eservice:
       - eservice_publish/
     expire_in: 1 hour
 
-# ==================== DEPLOY TO AZURE ====================
+# ==================== SYNC TO GITHUB ====================
 
-deploy_admin_to_azure:
-  stage: deploy
+sync_to_github:
+  stage: sync_to_github
   dependencies:
     - build_admin
-  script:
-    - Write-Host "Logging in to Azure..."
-    - az login --service-principal -u $env:AZURE_CLIENT_ID -p $env:AZURE_CLIENT_SECRET --tenant $env:AZURE_TENANT_ID
-    - Write-Host "Zipping content using PowerShell..."
-    - Compress-Archive -Path admin_publish/* -DestinationPath deploy_admin.zip -Force
-    - Write-Host "Deploying to Azure Web App..."
-    - az webapp deploy --name $env:AZURE_APP_NAME --resource-group $env:RESOURCE_GROUP --src-path deploy_admin.zip --type zip
-  when: manual
-  only:
-    - main
-
-deploy_eservice_to_azure:
-  stage: deploy
-  dependencies:
     - build_eservice
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: "0" # Crucial to avoid 'index-pack failed'
   script:
-    - Write-Host "Logging in to Azure..."
-    - az login --service-principal -u $env:AZURE_CLIENT_ID -p $env:AZURE_CLIENT_SECRET --tenant $env:AZURE_TENANT_ID
-    - Write-Host "Zipping content using PowerShell..."
-    - Compress-Archive -Path eservice_publish/* -DestinationPath deploy_eservice.zip -Force
-    - Write-Host "Deploying to Azure Web App..."
-    - az webapp deploy --name $env:AZURE_APP_NAME_E_SERVICE --resource-group $env:RESOURCE_GROUP --src-path deploy_eservice.zip --type zip
-  when: manual
+    - |
+      $ErrorActionPreference = "Stop"
+      
+      Write-Host "--- 1. Resetting Environment ---"
+      git config --global credential.helper ""
+      git config --global core.ignorecase true
+      git config user.email "gitlab-runner@moe.com"
+      git config user.name "GitLab Runner Sync"
+
+      Write-Host "--- 2. Preparing Branch ---"
+      git checkout -B main
+
+      Write-Host "--- 3. Pushing to GitHub (Direct URL) ---"
+      $githubUrl = "https://x-access-token:${env:GITHUB_TOKEN}@${env:GITHUB_REPO_BE_HTTPS}"
+      
+      git push $githubUrl main:main --force --atomic
+      
+      if ($LASTEXITCODE -ne 0) {
+          Write-Error "Git push failed! Check if GITHUB_TOKEN has 'workflow' scope."
+          exit 1
+      }
+      
+      Write-Host "Successfully synced Backend code to GitHub!"
   only:
     - main

@@ -63,9 +63,11 @@ public class AuthService : IAuthService
         return new LoginResponse
         {
             Token = token,
+            EducationAccountId = educationAccount.Id,
             AccountHolderId = educationAccount.AccountHolderId,
             FullName = $"{educationAccount.AccountHolder?.FirstName} {educationAccount.AccountHolder?.LastName}",
             Email = educationAccount.AccountHolder?.Email ?? "",
+            NRIC = educationAccount.AccountHolder?.NRIC ?? "",
             ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes)
         };
     }

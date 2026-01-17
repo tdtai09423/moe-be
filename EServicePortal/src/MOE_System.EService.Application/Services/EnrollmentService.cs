@@ -30,6 +30,7 @@ namespace MOE_System.EService.Application.Services
             }
 
             var repo = _unitOfWork.GetRepository<Enrollment>();
+            var invoiceRepo = _unitOfWork.GetRepository<Invoice>();
 
             var query = repo.Entities.AsNoTracking()
                 .Where(x => x.EducationAccount.AccountHolder.Id == accountHolderId
@@ -37,6 +38,20 @@ namespace MOE_System.EService.Application.Services
                 .Include(x => x.Course).ThenInclude(x => x.Provider);
 
             var pagedEntities = await repo.GetPagging(query, pageIndex, pageSize);
+
+            // Get enrollment IDs to fetch latest invoices
+            var enrollmentIds = pagedEntities.Items.Select(e => e.Id).ToList();
+            
+            // Get the latest invoice for each enrollment
+            var latestInvoices = await invoiceRepo.Entities.AsNoTracking()
+                .Where(i => enrollmentIds.Contains(i.EnrollmentID))
+                .GroupBy(i => i.EnrollmentID)
+                .Select(g => new
+                {
+                    EnrollmentId = g.Key,
+                    LatestDueDate = g.Max(i => i.DueDate)
+                })
+                .ToDictionaryAsync(x => x.EnrollmentId, x => x.LatestDueDate);
 
             var dtoItems = pagedEntities.Items.Select(
                 e => new ActiveCoursesResponse
@@ -47,6 +62,9 @@ namespace MOE_System.EService.Application.Services
                     ProviderName = e.Course?.Provider?.Name ?? "",
                     EnrollDate = e.EnrollDate,
                     Status = e.Status,
+                    PaymentType = !string.IsNullOrEmpty(e.Course?.BillingCycle) ? "recurring" : "onetime",
+                    BillingCycle = e.Course?.BillingCycle,
+                    BillingDate = latestInvoices.ContainsKey(e.Id) ? latestInvoices[e.Id] : null
                 }
                 ).ToList();
 

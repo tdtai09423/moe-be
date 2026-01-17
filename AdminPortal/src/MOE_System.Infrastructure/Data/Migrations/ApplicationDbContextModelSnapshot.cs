@@ -417,6 +417,10 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("EducationLevel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -500,6 +504,9 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.Property<string>("EduLevelCond")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NumberOfAccountsAffected")
+                        .HasColumnType("int");
 
                     b.Property<string>("RuleName")
                         .IsRequired()
@@ -642,7 +649,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasOne("MOE_System.Domain.Entities.Enrollment", "Enrollment")
                         .WithMany("Invoices")
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -663,7 +670,7 @@ namespace MOE_System.Infrastructure.Data.Migrations
                     b.HasOne("MOE_System.Domain.Entities.Invoice", "Invoice")
                         .WithMany("Transactions")
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Invoice");

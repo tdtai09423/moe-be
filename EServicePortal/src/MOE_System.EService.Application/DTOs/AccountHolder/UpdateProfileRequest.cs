@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace MOE_System.EService.Application.DTOs
+namespace MOE_System.EService.Application.DTOs.AccountHolder
 {
     public class UpdateProfileRequest : IValidatableObject
     {

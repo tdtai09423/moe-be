@@ -80,6 +80,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -104,6 +105,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -144,6 +146,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -184,6 +187,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -223,6 +227,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -272,6 +277,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IQueryable<BatchRuleExecution>>>(),
                 It.IsAny<Func<IQueryable<BatchRuleExecution>, IOrderedQueryable<BatchRuleExecution>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -330,6 +336,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<EducationAccount>, IQueryable<EducationAccount>>>(),
                 It.IsAny<Func<IQueryable<EducationAccount>, IOrderedQueryable<EducationAccount>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -376,6 +383,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<EducationAccount>, IQueryable<EducationAccount>>>(),
                 It.IsAny<Func<IQueryable<EducationAccount>, IOrderedQueryable<EducationAccount>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -410,6 +418,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<EducationAccount>, IQueryable<EducationAccount>>>(),
                 It.IsAny<Func<IQueryable<EducationAccount>, IOrderedQueryable<EducationAccount>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 
@@ -429,6 +438,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<EducationAccount>, IQueryable<EducationAccount>>>(),
                 It.IsAny<Func<IQueryable<EducationAccount>, IOrderedQueryable<EducationAccount>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<EducationAccount>());
 
@@ -464,6 +474,7 @@ public class DashboardServiceTest
                 It.IsAny<Func<IQueryable<EducationAccount>, IQueryable<EducationAccount>>>(),
                 It.IsAny<Func<IQueryable<EducationAccount>, IOrderedQueryable<EducationAccount>>>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockData);
 

@@ -10,6 +10,7 @@ public class TopupRule
     public decimal TopupAmount { get; set; }
     public string RuleTargetType { get; set; } = string.Empty; // individual or batch
     public string? TargetEducationAccountId { get; set; }
+    public int? NumberOfAccountsAffected { get; set; }
     public EducationAccount? TargetEducationAccount { get; set; }
 
     // Navigation property

@@ -1,12 +1,13 @@
-using MOE_System.EService.Application.DTOs;
-using MOE_System.EService.Application.Interfaces.Services;
-using MOE_System.EService.Application.Interfaces;
-using static MOE_System.EService.Domain.Common.BaseException;
-using MOE_System.EService.Application.Common.Interfaces;
-using MOE_System.EService.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MOE_System.EService.Application.Common.Interfaces;
+using MOE_System.EService.Application.DTOs.AccountHolder;
+using MOE_System.EService.Application.DTOs.Dashboard;
+using MOE_System.EService.Application.Interfaces;
+using MOE_System.EService.Application.Interfaces.Services;
 using MOE_System.EService.Domain.Common;
+using MOE_System.EService.Domain.Entities;
+using static MOE_System.EService.Domain.Common.BaseException;
 
 namespace MOE_System.EService.Application.Services
 {
@@ -81,10 +82,137 @@ namespace MOE_System.EService.Application.Services
                 AccountCreated = accountHolder.EducationAccount?.CreatedAt ?? accountHolder.CreatedAt,
                 SchoolingStatus = accountHolder.SchoolingStatus,
                 EducationLevel = accountHolder.EducationLevel,
+                ResidentialStatus = accountHolder.ResidentialStatus,
                 EmailAddress = accountHolder.Email,
                 PhoneNumber = accountHolder.ContactNumber,
                 RegisteredAddress = accountHolder.RegisteredAddress,
                 MailingAddress = accountHolder.MailingAddress
+            };
+        }
+
+        public async Task<YourCourseResponse> GetYourCoursesAsync(string accountHolderId)
+        {
+            var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
+
+            var accountHolder = await accountHolderRepo.Entities
+                .Where(ah => ah.Id == accountHolderId)
+                .Include(ah => ah.EducationAccount)
+                    .ThenInclude(ea => ea!.Enrollments)
+                        .ThenInclude(e => e.Course!)
+                            .ThenInclude(c => c.Provider)
+                .Include(ah => ah.EducationAccount)
+                    .ThenInclude(ea => ea!.Enrollments)
+                        .ThenInclude(e => e.Invoices)
+                            .ThenInclude(i => i.Transactions)
+                .FirstOrDefaultAsync();
+
+            if (accountHolder?.EducationAccount == null)
+            {
+                return new YourCourseResponse();
+            }
+
+            var eduAccount = accountHolder.EducationAccount;
+
+            var enrollments = accountHolder.EducationAccount.Enrollments ?? new List<Enrollment>();
+
+            var allInvoices = enrollments.SelectMany(e => (e.Invoices ?? new List<Invoice>()).Select(i => new
+            {
+                Invoice = i,
+                e.Course,
+                Enrollment = e
+            })).ToList();
+
+            var enrollRepo = _unitOfWork.GetRepository<Enrollment>();
+
+            var rawData = await enrollRepo.Entities
+                .Where(e => e.EducationAccountId == eduAccount.Id)
+                .Select(e => new
+                {
+                    e.Course!.CourseName,
+                    ProviderName = e.Course.Provider!.Name,
+                    e.Course.FeeAmount,
+                    e.Course.BillingCycle,
+                    e.EnrollDate,
+                    LatestInvoiceStatus = e.Invoices
+                        .OrderByDescending(i => i.DueDate)
+                        .Select(i => i.Status)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            var listEnrolledCourses = rawData.Select(item =>
+            {
+                DateOnly billingDateRaw;
+                if (item.LatestInvoiceStatus == "Outstanding")
+                {
+                    billingDateRaw = new DateOnly(item.EnrollDate.Year, item.EnrollDate.Month, 5);
+                }
+                else
+                {
+                    var nextMonth = item.EnrollDate.AddMonths(1);
+                    billingDateRaw = new DateOnly(nextMonth.Year, nextMonth.Month, 5);
+                }
+
+                return new EnrolledCourse
+                {
+                    CourseName = item.CourseName,
+                    ProviderName = item.ProviderName,
+                    CourseFee = item.FeeAmount,
+                    BillingCycle = item.BillingCycle ?? string.Empty,
+                    EnrolledDate = item.EnrollDate.ToString("dd/MM/yyyy"),
+                    BillingDate = billingDateRaw.ToString("dd/MM/yyyy"),
+                    PaymentStatus = item.LatestInvoiceStatus ?? "N/A"
+                };
+            }).ToList();
+
+            var outstandingFees = allInvoices
+                .Where(x => x.Invoice.Status == "Outstanding")
+                .Sum(x => x.Invoice.Amount);
+
+            var currentBalance = eduAccount.Balance;
+
+            var listPendingFees = allInvoices
+                .Where(x => x.Invoice.Status == "Outstanding")
+                .Select(x => new PendingFees
+                {
+                    CourseName = x.Course?.CourseName ?? "Unknown",
+                    ProviderName = x.Course?.Provider?.Name,
+                    AmountDue = x.Invoice.Amount,
+                    BillingCycle = x.Course?.BillingCycle ?? "N/A",
+                    BillingDate = x.Invoice.Status == "Outstanding"
+                        ? new DateOnly(x.Invoice.DueDate.Year, x.Invoice.DueDate.Month, 5).ToString("dd/MM/yyyy")
+                        : "N/A",
+                    DueDate = x.Invoice.DueDate.ToString("dd/MM/yyyy"),
+                    PaymentStatus = x.Invoice.Status
+                }).ToList();
+
+            var listPaymentHistory = allInvoices
+                .Where(x => x.Invoice.Status == "Paid")
+                .Select(x => new PaymentHistory
+                {
+                    CourseName = x.Course?.CourseName ?? "Unknown",
+                    ProviderName = x.Course?.Provider?.Name,
+                    AmountPaid = x.Invoice.Amount,
+                    BillingCycle = x.Course?.BillingCycle ?? "N/A",
+                    PaymentDate = x.Invoice.Transactions?.Where(t => t.InvoiceId == x.Invoice.Id && t.Status == "Success")?
+                        .OrderByDescending(t => t.TransactionAt)
+                        .Select(t => t.TransactionAt.ToString("dd/MM/yyyy"))
+                        .FirstOrDefault() ?? "N/A",
+                    PaymentMethod = x.Invoice.Transactions?.Where(t => t.InvoiceId == x.Invoice.Id && t.Status == "Success")?
+                        .OrderByDescending(t => t.TransactionAt)
+                        .Select(t => t.PaymentMethod)
+                        .FirstOrDefault() ?? "N/A"
+                }).OrderByDescending(h => h.PaymentDate)
+                .ToList();
+
+            // 9. Trả về kết quả cuối cùng
+            return new YourCourseResponse
+            {
+                OutstandingFees = outstandingFees,
+                Balance = currentBalance,
+                EnrolledCourses = listEnrolledCourses,
+                PendingFees = listPendingFees,
+                PaymentHistory = listPaymentHistory
             };
         }
 

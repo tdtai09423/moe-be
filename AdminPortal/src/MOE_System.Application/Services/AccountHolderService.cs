@@ -50,9 +50,20 @@ public class AccountHolderService : IAccountHolderService
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
         
-        var accountHolder = await accountHolderRepo.GetByIdAsync(accountHolderId);
+        var accountHolder = await accountHolderRepo.Entities
+            .Include(ah => ah.EducationAccount!)
+                .ThenInclude(ea => ea.Enrollments)
+                    .ThenInclude(en => en.Course!)
+                        .ThenInclude(c => c.Provider)
+            .Include(ah => ah.EducationAccount!)
+                .ThenInclude(ea => ea.Enrollments)
+                    .ThenInclude(en => en.Invoices)
+                        .ThenInclude(inv => inv.Transactions)
+            .Include(ah => ah.EducationAccount!)
+                .ThenInclude(ea => ea.HistoryOfChanges)
+            .FirstOrDefaultAsync(ah => ah.Id == accountHolderId);
 
-        if(accountHolder == null)
+        if (accountHolder == null)
         {
             throw new NotFoundException("ACCOUNT_HOLDER_NOT_FOUND", $"Account holder with ID {accountHolderId} not found.");
         }
@@ -72,6 +83,7 @@ public class AccountHolderService : IAccountHolderService
             StudentInformation = new StudentInformation
             {
                 DateOfBirth = accountHolder.DateOfBirth.ToString("dd/MM/yyyy"),
+                Age = DateTime.UtcNow.Year - accountHolder.DateOfBirth.Year - (DateTime.UtcNow.DayOfYear < accountHolder.DateOfBirth.DayOfYear ? 1 : 0),
                 Email = accountHolder.Email,
                 ContactNumber = accountHolder.ContactNumber,
                 SchoolingStatus = accountHolder.SchoolingStatus,
@@ -81,46 +93,47 @@ public class AccountHolderService : IAccountHolderService
                 MailingAddress = accountHolder.MailingAddress,
                 CreatedAt = accountHolder.CreatedAt.ToString("dd/MM/yyyy")
             },
+
             EnrolledCourses = accountHolder.EducationAccount?.Enrollments?
                 .Select(e => new EnrolledCourseInfo
                 {
                     CourseName = e.Course?.CourseName ?? string.Empty,
+                    ProviderName = e.Course?.Provider?.Name ?? string.Empty,
                     BillingCycle = e.Course?.BillingCycle ?? string.Empty,
                     TotalFree = e.Course?.FeeAmount ?? 0,
                     EnrollmentDate = e.EnrollDate.ToString("dd/MM/yyyy"),
                     CollectedFee = e.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0,
                     NextPaymentDue = e.Invoices?
-                        .Where(i => i.Status == "Outstanding")
+                        .Where(i => i.Status != "Outstanding")
                         .OrderBy(i => i.DueDate)
-                        .Select(i => i.DueDate.ToString("dd/mm/yyyy"))
+                        .Select(i => i.DueDate.ToString("dd/MM/yyyy"))
                         .FirstOrDefault() ?? "N/A",
-                    PaymentStatus = e.Invoices != null && e.Invoices.Any(i => i.Status == "Outstanding") ? "Pending" : "Up to Date"
-
+                    PaymentStatus = GetPaymentStatus(e)
                 }).ToList() ?? new List<EnrolledCourseInfo>(),
+
             OutstandingFeesDetails = accountHolder.EducationAccount?.Enrollments?
                 .SelectMany(e => e.Invoices
                     .Where(i => i.Status == "Outstanding")
                     .Select(i => new OutstandingFeeInfo
                     {
                         CourseName = e.Course?.CourseName ?? string.Empty,
+                        ProviderName = e.Course?.Provider?.Name ?? string.Empty,
                         OutstandingAmount = i.Amount,
                         DueDate = i.DueDate.ToString("dd/MM/yyyy"),
-                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 5).ToString("dd/MM/yyyy")
+                        BillingDate = new DateTime(i.DueDate.Year, i.DueDate.Month, 1).AddDays(4).ToString("dd/MM/yyyy")
                     }))
                 .ToList() ?? new List<OutstandingFeeInfo>(),
 
-            //Assuming logic
             TopUpHistory = accountHolder.EducationAccount?.HistoryOfChanges?.Where(h => h.Type == "TopUp")
+                .OrderByDescending(h => h.CreatedAt)
                 .Select(h => new TopUpHistoryInfo
                 {
-                    /* TopUpTime
-                     Amount
-                     Reference
-                     Description*/
-
-                    //Implement later when have more info
+                    TopUpDate = h.CreatedAt.ToString("dd/MM/yyyy"),
+                    TopUpTime = h.CreatedAt.ToString("HH:mm tt"),
+                    Amount = h.Amount,
+                    Reference = string.Empty,
+                    Description = string.Empty
                 })
-                .OrderByDescending(t => t.TopUpTime)
                 .ToList() ?? new List<TopUpHistoryInfo>(),
 
             PaymentHistory = accountHolder.EducationAccount?.Enrollments?
@@ -130,6 +143,7 @@ public class AccountHolderService : IAccountHolderService
                 .Select(t => new PaymentHistoryInfo
                 {
                     CourseName = t.Invoice?.Enrollment?.Course?.CourseName ?? string.Empty,
+                    ProviderName = t.Invoice?.Enrollment?.Course?.Provider?.Name ?? string.Empty,
                     PaymentDate = t.TransactionAt.ToString("dd/MM/yyyy"),
                     AmountPaid = t.Amount,
                     PaymentMethod = t.PaymentMethod
@@ -141,6 +155,35 @@ public class AccountHolderService : IAccountHolderService
         return accountHolderDetailResponse;
     }
 
+    private string GetPaymentStatus(Enrollment enrollment)
+    {
+        var totalFee = enrollment.Course?.FeeAmount ?? 0;
+        var collectedFee = enrollment.Invoices?.Where(i => i.Status == "Paid").Sum(i => i.Amount) ?? 0;
+        
+        // Outstanding: has invoices with Outstanding status (not paid yet)
+        var hasOutstanding = enrollment.Invoices?.Any(i => i.Status == "Outstanding") ?? false;
+        if (hasOutstanding)
+        {
+            return "Outstanding";
+        }
+        
+        // Scheduled: paid current invoices and waiting for next billing cycle
+        // This applies when there are paid invoices but the course is ongoing
+        if (collectedFee > 0 && collectedFee < totalFee)
+        {
+            return "Scheduled";
+        }
+        
+        // Fully Paid: all invoices paid and collected >= total fee
+        if (collectedFee >= totalFee)
+        {
+            return "Fully Paid";
+        }
+        
+        // Default to Scheduled if enrolled but no payments yet
+        return "Scheduled";
+    }
+
     public async Task<PaginatedList<AccountHolderResponse>> GetAccountHoldersAsync(int pageNumber = 1, int pageSize = 20, AccountHolderFilterParams? filters = null)
     {
         var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
@@ -150,8 +193,14 @@ public class AccountHolderService : IAccountHolderService
         // Apply filters and sorting via helper methods
         query = ApplyFilters(query, filters);
         query = ApplySorting(query, filters);
+        
+        // Default sort by created date descending if no sort was applied
+        if (filters == null || !filters.SortBy.HasValue)
+        {
+            query = query.OrderByDescending(ah => ah.CreatedAt);
+        }
 
-        query = query.Include(ah => ah.EducationAccount)
+        query = query.Include(ah => ah.EducationAccount!)
                      .ThenInclude(ea => ea.Enrollments); 
 
         var paginatedAccountHolders = await accountHolderRepo.GetPagging(query, pageNumber, pageSize);
@@ -203,10 +252,15 @@ public class AccountHolderService : IAccountHolderService
             ));
         }
 
-        if (!string.IsNullOrWhiteSpace(filters.SchoolingStatus))
+        if (filters.SchoolingStatus != null)
         {
-            var ss = filters.SchoolingStatus.Trim().ToLower();
-            query = query.Where(ah => ah.SchoolingStatus != null && ah.SchoolingStatus.ToLower() == ss);
+            var statusRaw = filters.SchoolingStatus.Value.ToFriendlyString();
+            var statusNormalized = statusRaw.ToLower().Replace(" ", "").Replace("-", "");
+
+            query = query.Where(ah => ah.SchoolingStatus != null &&
+                                      ah.SchoolingStatus.ToLower()
+                                                        .Replace(" ", "")
+                                                        .Replace("-", "") == statusNormalized);
         }
 
         if (filters.ResidentialStatuses != null && filters.ResidentialStatuses.Any())
@@ -219,15 +273,15 @@ public class AccountHolderService : IAccountHolderService
             ));
         }
 
-        if (filters.MinBlance.HasValue)
+        if (filters.MinBalance.HasValue)
         {
-            var min = filters.MinBlance.Value;
+            var min = filters.MinBalance.Value;
             query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance >= min);
         }
 
-        if (filters.MaxBlance.HasValue)
+        if (filters.MaxBalance.HasValue)
         {
-            var max = filters.MaxBlance.Value;
+            var max = filters.MaxBalance.Value;
             query = query.Where(ah => ah.EducationAccount != null && ah.EducationAccount.Balance <= max);
         }
 
@@ -251,7 +305,6 @@ public class AccountHolderService : IAccountHolderService
         return query;
     }
 
-    // Extracted sorting logic
     private IQueryable<AccountHolder> ApplySorting(IQueryable<AccountHolder> query, AccountHolderFilterParams? filters)
     {
         if (filters == null || !filters.SortBy.HasValue) return query;
@@ -353,7 +406,6 @@ public class AccountHolderService : IAccountHolderService
                 DateOfBirth = request.DateOfBirth,
                 Email = request.Email,
                 ContactNumber = request.ContactNumber,
-                EducationLevel = request.EducationLevel,
                 RegisteredAddress = request.RegisteredAddress,
                 MailingAddress = request.MailingAddress,
                 SchoolingStatus = SchoolingStatus.NotInSchool.ToFriendlyString(),
@@ -524,4 +576,25 @@ public class AccountHolderService : IAccountHolderService
         return response;
     }
 
+    public async Task UpdateAccountHolderAsync(EditAccountHolderRequest request)
+    {
+        var accountHolderRepo = _unitOfWork.GetRepository<AccountHolder>();
+
+        var existingAccountHolder = accountHolderRepo.Entities
+            .FirstOrDefault(ah => ah.Id == request.AccountHolderId);
+
+        if (existingAccountHolder == null)
+        {
+            throw new NotFoundException("ACCOUNT_HOLDER_NOT_FOUND", $"Account holder with ID {request.AccountHolderId} not found.");
+        }
+
+        existingAccountHolder.Email = request.Email;
+        existingAccountHolder.ContactNumber = request.PhoneNumber;
+        existingAccountHolder.RegisteredAddress = request.RegisteredAddress;
+        existingAccountHolder.MailingAddress = request.MailingAddress;
+        existingAccountHolder.UpdatedAt = DateTime.UtcNow;
+
+        await accountHolderRepo.UpdateAsync(existingAccountHolder);
+        await _unitOfWork.SaveAsync();
+    }
 }

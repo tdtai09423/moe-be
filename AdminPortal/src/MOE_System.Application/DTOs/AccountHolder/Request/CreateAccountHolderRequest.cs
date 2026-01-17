@@ -24,9 +24,6 @@ namespace MOE_System.Application.DTOs.AccountHolder.Request
         [Phone(ErrorMessage = "Invalid phone number format.")]
         public required string ContactNumber { get; set; }
 
-        [Required(ErrorMessage = "Education level is required.")]
-        public required string EducationLevel { get; set; }
-
         [Required(ErrorMessage = "Registered address is required.")]
         public required string RegisteredAddress { get; set; }
 
