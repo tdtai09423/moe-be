@@ -35,8 +35,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Auto-migrate database on startup (Development only)
-if (app.Environment.IsDevelopment())
-{
     using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -51,7 +49,6 @@ if (app.Environment.IsDevelopment())
             app.Logger.LogError(ex, "An error occurred while migrating the database");
         }
     }
-}
 
 // Configure exception handling middleware
 app.UseExceptionMiddleware();
