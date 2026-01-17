@@ -1,0 +1,68 @@
+name: Deploy Backend to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  RESOURCE_GROUP: 'moe-system-test'
+
+jobs:
+  # ==================== ADMIN PORTAL ====================
+  deploy-admin:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore and Publish Admin
+        run: |
+          dotnet restore "AdminPortal/MOE_System.sln"
+          dotnet publish AdminPortal/src/MOE_System.API/MOE_System.API.csproj -c Release -o ./admin_publish
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Admin to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'moe-admin'
+          package: ./admin_publish
+
+  # ==================== ESERVICE PORTAL ====================
+  deploy-eservice:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore and Publish EService
+        run: |
+          dotnet restore "EServicePortal/MOE_System.EService.sln"
+          dotnet publish EServicePortal/src/MOE_System.EService.API/MOE_System.EService.API.csproj -c Release -o ./eservice_publish
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy EService to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'moe-e-service'
+          package: ./eservice_publish
