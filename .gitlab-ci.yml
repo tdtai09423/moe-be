@@ -96,5 +96,6 @@ sync_to_github:
       }
       
       Write-Host "Successfully synced Backend code to GitHub!"
+  when: manual
   only:
     - main
