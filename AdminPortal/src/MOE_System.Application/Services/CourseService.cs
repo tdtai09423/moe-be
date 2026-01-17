@@ -271,8 +271,9 @@ namespace MOE_System.Application.Services
                 predicate: c => c.CourseCode == courseCode,
                 include: query => query
                     .Include(c => c.Provider)
-                    .Include(c => c.Enrollments)
+                    .Include(c => c.Enrollments.OrderByDescending(e => e.EnrollDate))
                         .ThenInclude(e => e.EducationAccount)
+                            .ThenInclude(ea => ea!.AccountHolder)
                     .Include(c => c.Enrollments)
                         .ThenInclude(e => e.Invoices)
                             .ThenInclude(i => i.Transactions),
@@ -285,6 +286,7 @@ namespace MOE_System.Application.Services
             }
 
             return new CourseDetailResponse(
+                course.Id,
                 course.CourseCode,
                 course.CourseName,
                 course.Provider?.Name ?? string.Empty,
@@ -298,10 +300,27 @@ namespace MOE_System.Application.Services
                 course.Enrollments!.OrderByDescending(e => e.EnrollDate).Select(e =>
                 {
                     var totalPaid = e.Invoices?.SelectMany(i => i.Transactions ?? Enumerable.Empty<Transaction>()).Sum(t => t.Amount) ?? 0m;
+                    var accountHolder = e.EducationAccount?.AccountHolder;
+                    
+                    // Build full name from FirstName and LastName
+                    var fullName = string.Empty;
+                    if (accountHolder != null && !string.IsNullOrWhiteSpace(accountHolder.FirstName))
+                    {
+                        fullName = $"{accountHolder.FirstName} {accountHolder.LastName}".Trim();
+                    }
+                    
+                    // Fallback to username if full name is empty
+                    if (string.IsNullOrWhiteSpace(fullName))
+                    {
+                        fullName = e.EducationAccount?.UserName ?? string.Empty;
+                    }
+                    
+                    var nric = accountHolder?.NRIC ?? string.Empty;
 
                     return new EnrolledStudent(
                         e.EducationAccount?.Id ?? string.Empty,
-                        e.EducationAccount?.UserName ?? string.Empty,
+                        fullName,
+                        nric,
                         totalPaid,
                         course.FeeAmount - totalPaid,
                         e.EnrollDate
@@ -333,19 +352,24 @@ namespace MOE_System.Application.Services
         public async Task BulkRemoveEnrolledAccountAsync(BulkRemoveEnrolledAccountRequest request)
         {
             var enrollRepo = _unitOfWork.GetRepository<Enrollment>();
+            var courseRepo = _unitOfWork.GetRepository<Course>();
 
-            if (string.IsNullOrWhiteSpace(request.CourseId))
-                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+            if (string.IsNullOrWhiteSpace(request.CourseCode))
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with code {request.CourseCode} not found.");
 
-            // Validate that the course exists
-            if (!_unitOfWork.IsValid<Course>(request.CourseId))
-                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+            // Get course by course code
+            var course = await courseRepo.FirstOrDefaultAsync(
+                predicate: c => c.CourseCode == request.CourseCode
+            );
+
+            if (course == null)
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with code {request.CourseCode} not found.");
 
             if (request.EducationAccountIds == null || request.EducationAccountIds.Count == 0)
                 return;
 
             await enrollRepo.Entities
-                .Where(e => e.CourseId == request.CourseId && request.EducationAccountIds.Contains(e.EducationAccountId))
+                .Where(e => e.CourseId == course.Id && request.EducationAccountIds.Contains(e.EducationAccountId))
                 .ExecuteDeleteAsync();
         }
 
@@ -353,29 +377,21 @@ namespace MOE_System.Application.Services
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
 
-            if (string.IsNullOrWhiteSpace(request.CourseId))
-                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
-
-            // Validate that the course exists
-            if (!_unitOfWork.IsValid<Course>(request.CourseId))
-            {
-                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
-            }
+            if (string.IsNullOrWhiteSpace(request.CourseCode))
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with code {request.CourseCode} not found.");
 
             if (request.AccountIds == null || request.AccountIds.Count == 0)
                 return;
-
-            
 
             var courseRepo = _unitOfWork.GetRepository<Course>();
 
             var course = await courseRepo.Entities
                 .Include(c => c.Provider)
-                .FirstOrDefaultAsync(c => c.Id == request.CourseId);
+                .FirstOrDefaultAsync(c => c.CourseCode == request.CourseCode);
 
             if (course == null)
             {
-                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with ID {request.CourseId} not found.");
+                throw new NotFoundException("COURSE_NOT_FOUND", $"Course with code {request.CourseCode} not found.");
             }
 
             var providerEducationLevel = course.Provider?.EducationLevel;
@@ -383,7 +399,7 @@ namespace MOE_System.Application.Services
             var enrollmentRepo = _unitOfWork.GetRepository<Enrollment>();
 
             var existingEnrollments = await enrollmentRepo.ToListAsync(
-                predicate: e => e.CourseId == request.CourseId && request.AccountIds.Contains(e.EducationAccountId)
+                predicate: e => e.CourseId == course.Id && request.AccountIds.Contains(e.EducationAccountId)
             );
 
             var candidateStudentIds = request.AccountIds
@@ -419,7 +435,7 @@ namespace MOE_System.Application.Services
 
             var newEnrollments = validStudentIds.Select(educationId => new Enrollment
             {
-                CourseId = request.CourseId,
+                CourseId = course.Id,
                 EducationAccountId = educationId,
                 EnrollDate = DateTime.UtcNow,
                 Status = "Active"

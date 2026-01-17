@@ -6,7 +6,7 @@ namespace MOE_System.Application.DTOs.Course.Request
 {
     public class BulkRemoveEnrolledAccountRequest
     {
-        public string CourseId { get; set; } = string.Empty;
+        public string CourseCode { get; set; } = string.Empty;
         public List<string> EducationAccountIds { get; set; } = new List<string>();
     }
 }

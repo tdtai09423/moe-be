@@ -51,16 +51,18 @@ namespace MOE_System.API.Controllers
             return Created(course, "Course added successfully");
         }
 
-        [HttpPost("bulk-enroll")]
-        public async Task<ActionResult<ApiResponse>> BulkEnrollAccount([FromBody] BulkEnrollAccountAsync request)
+        [HttpPost("{courseCode}/bulk-enroll")]
+        public async Task<ActionResult<ApiResponse>> BulkEnrollAccount(string courseCode, [FromBody] BulkEnrollAccountAsync request)
         {
+            request.CourseCode = courseCode;
             await _courseService.BulkEnrollAccountAsync(request);
             return Success("Accounts enrolled successfully");
         }
 
-        [HttpDelete("bulk-remove")]
-        public async Task<ActionResult<ApiResponse>> BulkRemoveEnrolledAccount([FromBody] BulkRemoveEnrolledAccountRequest request)
+        [HttpDelete("{courseCode}/bulk-remove")]
+        public async Task<ActionResult<ApiResponse>> BulkRemoveEnrolledAccount(string courseCode, [FromBody] BulkRemoveEnrolledAccountRequest request)
         {
+            request.CourseCode = courseCode;
             await _courseService.BulkRemoveEnrolledAccountAsync(request);
             return Success("Accounts removed successfully");
         }

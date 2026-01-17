@@ -193,6 +193,12 @@ public class AccountHolderService : IAccountHolderService
         // Apply filters and sorting via helper methods
         query = ApplyFilters(query, filters);
         query = ApplySorting(query, filters);
+        
+        // Default sort by created date descending if no sort was applied
+        if (filters == null || !filters.SortBy.HasValue)
+        {
+            query = query.OrderByDescending(ah => ah.CreatedAt);
+        }
 
         query = query.Include(ah => ah.EducationAccount!)
                      .ThenInclude(ea => ea.Enrollments); 
